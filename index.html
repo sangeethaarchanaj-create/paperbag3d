@@ -177,6 +177,24 @@ td:first-child{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
+/* VR / one-click mode (Meta Quest controllers inside FrameVR) */
+.modebtn{font-family:var(--f-display);font-size:1rem;font-weight:600;padding:8px 14px;border-radius:999px;border:2px solid var(--teal);background:var(--surface);color:var(--teal-soft-ink);cursor:pointer}
+body.vr .modebtn{background:var(--teal);color:var(--teal-ink)}
+body.vr{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body.vr .act{padding:22px 42px;font-size:1.45rem;gap:14px}
+body.vr .act kbd{display:none}
+body.vr .tool{width:58px;height:58px;border-radius:14px}
+body.vr .tool svg{width:26px;height:26px}
+body.vr .btn{padding:18px 18px;font-size:1.1rem}
+body.vr .nav button{padding:16px 16px;font-size:1.08rem}
+body.vr .gbtn{padding:10px 16px;font-size:1rem}
+body.vr .watch{width:40px;height:40px}
+body.vr .steps li{grid-template-columns:30px minmax(0,1fr) 60px 40px}
+body.vr .chapters button{padding:12px 10px;font-size:.98rem}
+body.vr .sbtn{padding:12px 16px;font-size:1rem}
+body.vr .marker .lbl{font-size:1.05rem;padding:8px 14px}
+body.vr .guide h3{font-size:1.25rem}body.vr .guide p{font-size:1.05rem}
+body.vr .mk input{width:72px;padding:10px}
 /* v3 additions */
 .steps li{padding:7px 0;grid-template-columns:30px minmax(0,1fr) 70px 26px}
 .watch{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);display:grid;place-items:center;cursor:pointer;color:var(--ink);padding:0}
@@ -232,6 +250,39 @@ td:first-child{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--
 @media (max-width:1400px){.lower{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}.stack3{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
 @media (max-width:1180px){.sim{grid-template-columns:minmax(0,1fr)}.lower{grid-template-columns:minmax(0,1fr)}.stage{height:clamp(420px,62vh,600px)}}
 @media (max-width:860px){.stage{height:440px}}
+
+/* ---------- trainer rubric ---------- */
+.rub-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+.rub-head h3{margin:0;font-family:var(--f-display);font-size:1.08rem}
+.rub-head p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.rub-meta{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.rub-meta label{display:flex;flex-direction:column;gap:4px;font-size:.78rem;font-weight:600;color:var(--muted)}
+.rub-meta select,.rub-meta input{font:inherit;font-size:.95rem;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-width:150px}
+.rub table{font-size:.92rem}
+.rub th,.rub td{padding:8px 10px;vertical-align:middle}
+.rub thead th{position:sticky;top:0;background:var(--surface-2);z-index:1}
+.rub .c-n{width:34px;color:var(--muted);text-align:right}
+.rub .c-m{width:118px;white-space:nowrap}
+.rub .c-t{width:92px;text-align:right;font-weight:700;white-space:nowrap}
+.rub tr.sub td{white-space:nowrap}
+.rub tr.part td{background:var(--teal-soft);color:var(--teal-soft-ink);font-weight:700;font-family:var(--f-display)}
+.rub tr.part td span{font-weight:500;font-family:inherit;opacity:.85}
+.rub tr.sub td{background:var(--surface-2);font-weight:700}
+.rub tr.grand td{background:var(--rail);color:var(--rail-ink);font-weight:700}
+.mk{display:inline-flex;align-items:center;gap:6px}
+.mk input{width:58px;font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:6px 7px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
+.mk input:focus{outline:2px solid var(--teal);outline-offset:1px}
+.mk input.bad{border-color:var(--bad);background:var(--bad-soft)}
+.mk small{color:var(--muted);font-size:.85rem}
+.rub-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:16px 18px;border-top:1px solid var(--line)}
+.rub-sum .kpi{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.rub-sum .kpi span{font-size:.78rem;color:var(--muted);font-weight:600}
+.rub-sum .kpi strong{font-size:1.25rem;font-variant-numeric:tabular-nums}
+.verdict{font-weight:700;padding:3px 10px;border-radius:999px;font-size:.95rem;align-self:flex-start}
+.verdict.pass{background:var(--ok-soft);color:var(--ok)}.verdict.fail{background:var(--bad-soft);color:var(--bad)}.verdict.pend{background:var(--surface-2);color:var(--muted)}
+.rub-actions{display:flex;flex-wrap:wrap;gap:10px;padding:0 18px 18px}
+.rub-actions .btn{padding:10px 14px;flex:0 0 auto}
+@media print{body *{visibility:hidden!important}#rubPrint,#rubPrint *{visibility:visible!important}#rubPrint{position:absolute;left:0;top:0;width:100%}.rub-actions,.no-print{display:none!important}.mk input{border:none;background:none}}
 </style>
 </head>
 <body>
@@ -256,6 +307,7 @@ td:first-child{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--
       <div class="meta"><span>Session mode</span><strong>Simulation</strong></div>
       <div class="meta"><span>Elapsed</span><strong class="tabnum" id="elapsed">00:00</strong></div>
       <div class="meta"><span>Errors</span><strong class="tabnum" id="errCount">0</strong></div>
+      <div class="meta"><span>Controller input</span><button class="modebtn" id="modeBtn" type="button">One-click (VR)</button></div>
     </section>
 
     <!-- SESSIONS -->
@@ -377,7 +429,39 @@ td:first-child{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--
 
     <!-- ASSESSMENT -->
     <section data-panel="assessment" hidden style="display:flex;flex-direction:column;gap:18px">
-      <div class="view-head"><h2>Assessment</h2><p>Completed attempts saved in this browser, with their full logs. Score starts at 100, loses 6 points per error and 1 point for every 6 seconds beyond 3 minutes.</p></div>
+      <div class="view-head"><h2>Assessment</h2><p>Trainer rubric for the paper bag activity (Theory and Skills Practical, 200 marks), followed by the simulator attempts saved in this browser. Simulator score starts at 100, loses 6 points per error and 1 point for every 6 seconds beyond 3 minutes.</p></div>
+      <div class="card rub" id="rubPrint">
+        <div class="rub-head">
+          <div><h3>Trainer assessment · Paper bag making</h3><p>Enter Theory and Skills Practical marks for each criterion. Pass: 60% aggregate (120 of 200).</p></div>
+          <div class="rub-meta">
+            <label>Learner<select id="rubLearner"></select></label>
+            <label>Assessor<input id="rubAssessor" placeholder="Name"></label>
+            <label>Date<input id="rubDate" type="date"></label>
+          </div>
+        </div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th class="c-n">#</th><th>Assessment criteria</th><th class="c-m">Theory</th><th class="c-m">Skills practical</th><th class="c-t">Total</th></tr></thead>
+          <tbody id="rubBody"></tbody>
+        </table></div>
+        <div class="rub-sum">
+          <div class="kpi"><span>Theory</span><strong id="rsT">0 / 0</strong></div>
+          <div class="kpi"><span>Skills practical</span><strong id="rsP">0 / 0</strong></div>
+          <div class="kpi"><span>Grand total</span><strong id="rsG">0 / 200</strong></div>
+          <div class="kpi"><span>Percentage</span><strong id="rsPct">0%</strong></div>
+          <div class="kpi"><span>Result</span><span class="verdict pend" id="rsV">Not marked</span></div>
+        </div>
+        <div class="rub-actions">
+          <button class="btn btn-primary" id="rubSave">Save evaluation</button>
+          <button class="btn btn-ghost" id="rubFull">Fill full marks</button>
+          <button class="btn btn-ghost" id="rubClear">Clear marks</button>
+          <button class="btn btn-ghost" id="rubCsv">Copy CSV</button>
+          <button class="btn btn-ghost" id="rubPrintBtn">Print</button>
+        </div>
+      </div>
+      <div class="card no-print"><div class="rub-head" style="border:0;padding-bottom:6px"><div><h3>Saved evaluations</h3><p>Stored in this browser. Open one to view or edit its marks.</p></div></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Learner</th><th>Assessor</th><th>Procedure</th><th>Behaviour</th><th>Theory</th><th>Practical</th><th>Total</th><th>Result</th><th></th></tr></thead><tbody id="evalBody"></tbody></table></div>
+        <div class="empty" id="evalEmpty">No evaluations saved yet.</div></div>
+      <div class="view-head" style="margin-top:6px"><h2 style="font-size:1.05rem">Simulator attempts</h2></div>
       <div class="card"><div style="overflow-x:auto"><table><thead><tr><th>Finished</th><th>Learner</th><th>Time</th><th>Errors</th><th>Voice</th><th>Score</th><th>Level</th><th></th></tr></thead><tbody id="attemptBody"></tbody></table></div><div class="empty" id="attemptEmpty">No completed attempts yet. Finish a session to see it here.</div></div>
     </section>
   </main>
@@ -404,6 +488,17 @@ td:first-child{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--
 <script>
 (function(){
 const $=id=>document.getElementById(id);
+/* ---------- VR one-click mode: Quest controllers in FrameVR send clicks, not reliable holds/drags ---------- */
+const QS=new URLSearchParams(location.search);
+const XR_UA=/OculusBrowser|Quest|Pico|Wolvic/i.test(navigator.userAgent);
+let vrMode=XR_UA;
+try{const sv=localStorage.getItem('pbsim-vrmode');if(sv!=null)vrMode=sv==='1'}catch(e){}
+if(QS.has('vr'))vrMode=true;if(QS.has('desktop'))vrMode=false;
+const vrText=t=>!vrMode?t:t.replace(/Press and hold on /g,'Click ').replace(/^Hold: (.)/,(m,c)=>c.toUpperCase()).replace(/^Hold to /,'Click to ')
+  .replace('Drag the kraft sheet onto the dashed outline on the cutting mat.','Click the kraft sheet (or the big button) to place it on the dashed outline.')
+  .replace('Drag onto the outline','Click the sheet').replace('Slide onto guide','Place the sheet');
+function applyMode(){document.body.classList.toggle('vr',vrMode);
+  const b=$('modeBtn');if(b){b.textContent=vrMode?'One-click (VR)':'Hold & drag (desktop)';b.setAttribute('aria-pressed',vrMode)}}
 /* ---------- the 10 steps, timed against the reference video ---------- */
 const STEPS=[
  {key:'place',type:'Position',title:'Place the sheet',guide:'Drag the kraft sheet onto the dashed outline on the cutting mat.',t:2,parts:['sheet','half','flapR','flapL'],mark:'Drag onto the outline',act:'Slide onto guide',
@@ -457,7 +552,7 @@ function refreshSteps(){
     $('sb'+i).style.width=(i<S.step?100:i===S.step?S.prog*100:0)+'%';$('ch'+i).classList.toggle('cur',i===S.step&&!S.done)});
   $('stepCount').textContent=Math.min(S.step,N)+'/'+N;
   if(S.done){$('gStep').textContent='Complete';$('gType').textContent='Done';$('gTitle').textContent='Bag finished';$('gText').textContent='Open Review session for the score, or Repeat activity to practise again.';$('gHold').hidden=true}
-  else{const st=STEPS[S.step];$('gStep').textContent=`Step ${S.step+1} of ${N}`;$('gType').textContent=st.type;$('gTitle').textContent=st.title;$('gText').textContent=st.guide;$('gHold').hidden=!st.dur}
+  else{const st=STEPS[S.step];$('gStep').textContent=`Step ${S.step+1} of ${N}`;$('gType').textContent=st.type;$('gTitle').textContent=st.title;$('gText').textContent=vrText(st.guide);$('gHold').hidden=!st.dur}
   refreshAct();
 }
 function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -511,7 +606,7 @@ $('btnReview').onclick=openReview;
 function speakStep(src){const st=S.done?null:STEPS[S.step];
   const g=$('guide');g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
   if(!st){say('The bag is finished.');return}
-  log('Guidance',`${src||'Replayed'} instruction: ${st.title}`);say(`Step ${S.step+1}. ${st.title}. ${st.guide}`,true)}
+  log('Guidance',`${src||'Replayed'} instruction: ${st.title}`);say(`Step ${S.step+1}. ${st.title}. ${vrText(st.guide)}`,true)}
 $('btnReplay').onclick=()=>speakStep('Trainer replayed');
 $('gSpeak').onclick=()=>speakStep('Read aloud');
 $('gWatch').onclick=()=>playChapter(S.done?N-1:S.step);
@@ -520,8 +615,8 @@ $('chapters').addEventListener('click',e=>{const b=e.target.closest('[data-ch]')
 
 /* ---------- CSV + attempts ---------- */
 function csv(rows){return 'time,event_type,event_detail\n'+rows.map(r=>[r.t,r.type,r.detail].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n')}
-async function copyText(txt,btn){try{await navigator.clipboard.writeText(txt);toast('Log copied as CSV',true)}catch(e){
-  const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Log copied as CSV',true)}catch(_){toast('Select and copy the log manually')}ta.remove()}}
+async function copyText(txt,btn){try{await navigator.clipboard.writeText(txt);toast('Copied as CSV',true)}catch(e){
+  const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copied as CSV',true)}catch(_){toast('Select and copy the log manually')}ta.remove()}}
 $('copyCsv').onclick=()=>copyText(csv(S.log));
 let downloadsApi=null;
 const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
@@ -552,6 +647,102 @@ function showView(v){
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>showView(b.dataset.go));
 
+
+/* ---------- trainer rubric ---------- */
+const RUBRIC=[
+ {id:'A',title:'Part A · Paper bag making activity procedure',items:[
+  ['Cleaning and arranging the workplace; arranging the materials in the workplace',3,7],
+  ['Identifying and naming the materials',3,7],
+  ['Taking the handmade paper and folding 2″ inside from the top of the paper',2,2],
+  ['Joining the two side ends with Fevicol',2,2],
+  ['Squeezing the sides with the device',2,2],
+  ['Folding the bottom side and two opposite sides',2,2],
+  ['Folding the other two opposite sides',2,2],
+  ['Applying gum and pasting the opposite side',3,7],
+  ['Marking and punching holes for fixing handles',3,7],
+  ['Fitting the eyelets',3,7],
+  ['Inserting thread into the eyelets',3,7],
+  ['Knotting the thread on two sides',3,7],
+  ['Keeping the final product in a suitable place',3,7]]},
+ {id:'B',title:'Part B · Workplace conduct and safety',items:[
+  ['Identifies, knows and uses paper bag materials',3,7],
+  ['Punctuality in the workplace',3,7],
+  ['Greets the supervisor and team members',3,7],
+  ['Signs the register',2,3],
+  ['Starts the work',2,3],
+  ['Handles materials carefully while using them',3,7],
+  ['Stores materials and equipment safely after use',3,7],
+  ['Reports to the responsible person when work is disrupted',3,7],
+  ['Minimises waste',3,7],
+  ['Works with team members',3,7],
+  ['Seeks clarification from supervisors or other authorised personnel in case of perceived risks',2,3],
+  ['Seeks information on policies and procedures from the supervisor or other authorised personnel',2,3]]}];
+const PASS_PCT=60,RUB_KEY='pbsim-rubric-v1';
+const RUB_MAX=RUBRIC.reduce((m,p)=>m+p.items.reduce((a,it)=>a+it[1]+it[2],0),0);
+let rubEditIdx=-1;
+(function buildRubric(){
+  const ls=$('rubLearner');LEARNERS.forEach(l=>{const o=document.createElement('option');o.textContent=l.n;ls.appendChild(o)});
+  $('rubDate').value=new Date().toISOString().slice(0,10);
+  let h='';RUBRIC.forEach(p=>{const mt=p.items.reduce((a,i)=>a+i[1],0),mp=p.items.reduce((a,i)=>a+i[2],0);
+    h+=`<tr class="part"><td colspan="5">${p.title} <span>· ${mt+mp} marks (Theory ${mt}, Practical ${mp})</span></td></tr>`;
+    p.items.forEach((it,i)=>{const k=p.id+i;h+=`<tr><td class="c-n">${i+1}</td><td>${esc(it[0])}</td>
+      <td class="c-m"><span class="mk"><input inputmode="decimal" data-k="${k}t" data-max="${it[1]}" aria-label="${esc(it[0])} theory, out of ${it[1]}"><small>/ ${it[1]}</small></span></td>
+      <td class="c-m"><span class="mk"><input inputmode="decimal" data-k="${k}p" data-max="${it[2]}" aria-label="${esc(it[0])} practical, out of ${it[2]}"><small>/ ${it[2]}</small></span></td>
+      <td class="c-t tabnum" id="rt${k}">–</td></tr>`});
+    h+=`<tr class="sub"><td></td><td>Subtotal · Part ${p.id}</td><td class="tabnum" id="rs${p.id}t">0 / ${mt}</td><td class="tabnum" id="rs${p.id}p">0 / ${mp}</td><td class="c-t tabnum" id="rs${p.id}">0 / ${mt+mp}</td></tr>`});
+  $('rubBody').innerHTML=h;rubCalc();
+})();
+function rubInputs(){return [...document.querySelectorAll('#rubBody input')]}
+function rubVal(inp){const v=inp.value.trim();if(v==='')return null;const n=Number(v);return isFinite(n)?n:NaN}
+function rubCalc(){
+  let T=0,P=0,filled=0,bad=0;const parts={};
+  RUBRIC.forEach(p=>{let pt=0,pp=0;p.items.forEach((it,i)=>{const k=p.id+i,ti=document.querySelector(`[data-k="${k}t"]`),pi=document.querySelector(`[data-k="${k}p"]`);
+    let row=0,any=false;[[ti,'t'],[pi,'p']].forEach(([inp,kind])=>{const v=rubVal(inp),mx=+inp.dataset.max,ok=v===null||(v>=0&&v<=mx);inp.classList.toggle('bad',!ok);
+      if(!ok){bad++;return}if(v!==null){filled++;any=true;row+=v;kind==='t'?pt+=v:pp+=v}});
+    $('rt'+k).textContent=any?+row.toFixed(1):'–'});
+    const mt=p.items.reduce((a,i)=>a+i[1],0),mp=p.items.reduce((a,i)=>a+i[2],0);
+    $('rs'+p.id+'t').textContent=`${+pt.toFixed(1)} / ${mt}`;$('rs'+p.id+'p').textContent=`${+pp.toFixed(1)} / ${mp}`;$('rs'+p.id).textContent=`${+(pt+pp).toFixed(1)} / ${mt+mp}`;
+    parts[p.id]=+(pt+pp).toFixed(1);T+=pt;P+=pp});
+  const MT=RUBRIC.reduce((m,p)=>m+p.items.reduce((a,i)=>a+i[1],0),0),MP=RUB_MAX-MT,G=T+P,pct=G/RUB_MAX*100,total=rubInputs().length;
+  $('rsT').textContent=`${+T.toFixed(1)} / ${MT}`;$('rsP').textContent=`${+P.toFixed(1)} / ${MP}`;$('rsG').textContent=`${+G.toFixed(1)} / ${RUB_MAX}`;$('rsPct').textContent=pct.toFixed(1)+'%';
+  const v=$('rsV');if(bad){v.className='verdict fail';v.textContent=`${bad} mark${bad>1?'s':''} above maximum`}
+  else if(filled<total){v.className='verdict pend';v.textContent=filled?`${filled}/${total} marks entered`:'Not marked'}
+  else{const ok=pct>=PASS_PCT;v.className='verdict '+(ok?'pass':'fail');v.textContent=ok?'Pass':'Not yet competent'}
+  return{T:+T.toFixed(1),P:+P.toFixed(1),G:+G.toFixed(1),pct,filled,total,bad,parts,pass:!bad&&filled===total&&pct>=PASS_PCT}}
+$('rubBody').addEventListener('input',rubCalc);
+$('rubBody').addEventListener('change',e=>{const i=e.target;if(i.tagName!=='INPUT')return;const v=rubVal(i);if(v!==null&&!isNaN(v)&&v>=0&&v<=+i.dataset.max)i.value=+v.toFixed(1)});
+$('rubBody').addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;e.preventDefault();const a=rubInputs(),n=a[a.indexOf(e.target)+1];if(n){n.focus();n.select()}});
+$('rubFull').onclick=()=>{rubInputs().forEach(i=>i.value=i.dataset.max);rubCalc()};
+$('rubClear').onclick=()=>{rubInputs().forEach(i=>i.value='');rubEditIdx=-1;$('rubSave').textContent='Save evaluation';rubCalc()};
+$('rubPrintBtn').onclick=()=>window.print();
+function loadEvals(){try{return JSON.parse(localStorage.getItem(RUB_KEY)||'[]')}catch(e){return[]}}
+function saveEvals(a){try{localStorage.setItem(RUB_KEY,JSON.stringify(a));return true}catch(e){return false}}
+function rubSnapshot(){const r=rubCalc(),marks={};rubInputs().forEach(i=>marks[i.dataset.k]=i.value.trim());
+  return{date:$('rubDate').value,learner:$('rubLearner').value,assessor:$('rubAssessor').value.trim(),marks,T:r.T,P:r.P,G:r.G,pct:r.pct,parts:r.parts,complete:r.filled===r.total&&!r.bad,pass:r.pass}}
+$('rubSave').onclick=()=>{const r=rubCalc();if(r.bad){toast('Some marks are above the maximum for that criterion');return}
+  if(!r.filled){toast('Enter at least one mark before saving');return}
+  const a=loadEvals(),snap=rubSnapshot();if(rubEditIdx>=0&&a[rubEditIdx])a[rubEditIdx]=snap;else a.unshift(snap);
+  if(!saveEvals(a.slice(0,200))){toast('This browser blocked saving. Use Copy CSV or Print instead.');return}
+  rubEditIdx=-1;$('rubSave').textContent='Save evaluation';renderEvals();
+  toast(r.filled<r.total?`Saved as incomplete (${r.filled}/${r.total} marks)`:`Saved: ${snap.G}/${RUB_MAX}, ${snap.pass?'Pass':'Not yet competent'}`,true);
+  if(S)log('Assessment',`Trainer rubric saved for ${snap.learner}: ${snap.G}/${RUB_MAX} (${snap.pct.toFixed(1)}%)`)};
+function renderEvals(){const a=loadEvals();
+  $('evalBody').innerHTML=a.map((r,i)=>`<tr><td>${esc(r.date||'')}</td><td>${esc(r.learner)}</td><td>${esc(r.assessor||'—')}</td><td class="tabnum">${r.parts.A}</td><td class="tabnum">${r.parts.B}</td><td class="tabnum">${r.T}</td><td class="tabnum">${r.P}</td><td class="tabnum"><strong>${r.G}</strong> <small style="color:var(--muted)">${r.pct.toFixed(0)}%</small></td>
+    <td><span class="verdict ${!r.complete?'pend':r.pass?'pass':'fail'}">${!r.complete?'Incomplete':r.pass?'Pass':'Not yet competent'}</span></td>
+    <td style="white-space:nowrap"><button class="sbtn" data-ev="${i}">Open</button> <button class="sbtn" data-evdel="${i}">Delete</button></td></tr>`).join('');
+  $('evalEmpty').hidden=a.length>0}
+$('evalBody').addEventListener('click',e=>{const o=e.target.closest('[data-ev]'),d=e.target.closest('[data-evdel]'),a=loadEvals();
+  if(d){const r=a[+d.dataset.evdel];if(r&&confirmDel(d)){a.splice(+d.dataset.evdel,1);saveEvals(a);renderEvals();if(rubEditIdx===+d.dataset.evdel){rubEditIdx=-1;$('rubSave').textContent='Save evaluation'}}return}
+  if(!o)return;const r=a[+o.dataset.ev];if(!r)return;rubEditIdx=+o.dataset.ev;
+  $('rubLearner').value=r.learner;$('rubAssessor').value=r.assessor||'';$('rubDate').value=r.date||'';rubInputs().forEach(i=>i.value=r.marks[i.dataset.k]||'');rubCalc();
+  $('rubSave').textContent='Update evaluation';$('rubPrint').scrollIntoView({behavior:'smooth',block:'start'})});
+function confirmDel(btn){if(btn.dataset.armed){return true}btn.dataset.armed='1';btn.textContent='Confirm?';setTimeout(()=>{if(btn.isConnected){delete btn.dataset.armed;btn.textContent='Delete'}},3000);return false}
+$('rubCsv').onclick=()=>{const s=rubSnapshot(),q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  let rows=[['Learner',s.learner],['Assessor',s.assessor],['Date',s.date],[],['Part','#','Assessment criteria','Theory','Theory max','Practical','Practical max','Total']];
+  RUBRIC.forEach(p=>p.items.forEach((it,i)=>{const t=s.marks[p.id+i+'t'],pr=s.marks[p.id+i+'p'];rows.push([p.id,i+1,it[0],t,it[1],pr,it[2],(t===''&&pr==='')?'':(+t||0)+(+pr||0)])}));
+  rows.push([],['','','Theory total',s.T],['','','Practical total',s.P],['','','Grand total',s.G,RUB_MAX],['','','Percentage',s.pct.toFixed(1)+'%'],['','','Result',!s.complete?'Incomplete':s.pass?'Pass':'Not yet competent']);
+  copyText(rows.map(r=>r.map(q).join(',')).join('\n'))};
+renderEvals();
 /* ---------- reference video ---------- */
 const vid=$('vid');let stopAt=null,playingCh=-1;
 function playChapter(i){i=Math.max(0,Math.min(N-1,i));const start=STEPS[i].t,end=i<N-1?STEPS[i+1].t:VID_END;
@@ -729,7 +920,19 @@ function autoDo(via){const key=curKey();if(!key||busy())return;S.via=via;ac();co
   if(st.dur){S.autoHold=true;return}
   if(key==='place'){S.auto=true;S.lift=.18;S.carry={x:0,z:0};S.yaw=0;sfx.pick();setTimeout(()=>{S.auto=false;S.lift=0;S.prog=1;completeStep()},800)}}
 function startPan(e){pointerDownCam=true;panLast=[e.clientX,e.clientY];camTw.t=1;try{el.setPointerCapture(e.pointerId)}catch(_){}}
+let lastVrTap=0;
+function vrTap(e){
+  lastVrTap=performance.now();ac();setPt(e);T.finger=lastVrTap;handVis=true;
+  const [wx,wz]=toWorld(lastPt[0],lastPt[1]);handT.x=wx;handT.z=wz;
+  if(S.done){openReview();return}
+  const key=curKey();if(!key||busy())return;
+  const hit=hitAt(),a=P(...anchorLocal(key)),near=Math.hypot(wx-a[0],wz-a[1])<.5;
+  if(validFor(key,hit)||near){autoDo('touch');return}
+  const st=STEPS[S.step];toast(`For “${st.title}”, click ${nameOf[st.parts[0]]} at the glowing ring, or press the big button below.`,true);
+}
+el.addEventListener('click',e=>{if(vrMode&&performance.now()-lastVrTap>600)vrTap(e)});
 el.addEventListener('pointerdown',e=>{
+  if(vrMode){vrTap(e);return}
   if(e.button!==0&&e.pointerType==='mouse')return;
   ac();setPt(e);downXY=[e.clientX,e.clientY];T.finger=performance.now();pointerDownCam=false;
   const key=curKey();if(!key||busy()){startPan(e);return}
@@ -766,14 +969,18 @@ const actBtn=$('actBtn');
 function actStart(){ac();if(S.done){openReview();return}const key=curKey();if(!key||busy())return;
   const st=STEPS[S.step];if(st.dur){S.via='button';startHold();S.btnHold=true;return}autoDo('button')}
 function actEnd(){if(S.btnHold){S.btnHold=false;stopHold()}}
-actBtn.addEventListener('pointerdown',e=>{e.preventDefault();try{actBtn.setPointerCapture(e.pointerId)}catch(_){}actStart()});
+actBtn.addEventListener('pointerdown',e=>{if(vrMode)return;e.preventDefault();try{actBtn.setPointerCapture(e.pointerId)}catch(_){}actStart()});
 actBtn.addEventListener('pointerup',actEnd);actBtn.addEventListener('pointercancel',actEnd);actBtn.addEventListener('lostpointercapture',actEnd);
-actBtn.addEventListener('keydown',e=>e.preventDefault());
+actBtn.addEventListener('keydown',e=>{if(!vrMode)e.preventDefault()});
+actBtn.addEventListener('click',()=>{if(!vrMode)return;ac();if(S.done){openReview();return}if(!curKey()||busy())return;autoDo('button')});
+$('modeBtn').addEventListener('click',()=>{vrMode=!vrMode;try{localStorage.setItem('pbsim-vrmode',vrMode?'1':'0')}catch(e){}
+  S.holding=S.ptrHold=S.btnHold=S.dragging=false;applyMode();refreshSteps();log('System',`Input mode: ${vrMode?'one-click (VR controllers)':'hold and drag'}`);
+  toast(vrMode?'One-click mode: every step needs only a single click':'Hold & drag mode',true)});
 document.addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat||!$('modal').hidden||!$('logModal').hidden)return;const t=e.target;
   if(['SELECT','INPUT','TEXTAREA','VIDEO','BUTTON'].includes(t.tagName)&&t!==actBtn)return;if(document.querySelector('[data-panel="sessions"]').hidden)return;e.preventDefault();actStart()});
 document.addEventListener('keyup',e=>{if(e.code==='Space')actEnd()});
 function refreshAct(){$('actLbl').textContent=S.done?'Review session':ACT();actBtn.disabled=false}
-function ACT(){return STEPS[S.step].act}
+function ACT(){return vrText(STEPS[S.step].act)}
 
 /* ---------- loop ---------- */
 let lastT=performance.now();
@@ -891,7 +1098,7 @@ function tick(){
   drawScene(now,working);
   /* marker */
   if(key&&!working&&!S.dragging&&!S.auto){const a=P(...anchorLocal(key)),[mx,my]=toScreen(a[0],a[1]);
-    if(mx>-20&&mx<W+20&&my>-20&&my<H+20){marker.hidden=false;marker.style.left=mx+'px';marker.style.top=my+'px';markLbl.textContent=STEPS[S.step].mark}else marker.hidden=true}
+    if(mx>-20&&mx<W+20&&my>-20&&my<H+20){marker.hidden=false;marker.style.left=mx+'px';marker.style.top=my+'px';markLbl.textContent=vrText(STEPS[S.step].mark)}else marker.hidden=true}
   else marker.hidden=true;
   if(S.holding&&S.ptrHold){pring.hidden=false;pring.style.left=lastPt[0]+'px';pring.style.top=lastPt[1]+'px';pring.style.setProperty('--p',holdP)}else pring.hidden=true;
   /* chips + clock */
@@ -907,7 +1114,8 @@ function reset(reason){
   log('System',`Session started (simulation mode) · ${learner}`);guidance();refreshSteps();frame('place');
   reply('Waiting for a step name.');$('heardTxt').textContent='Nothing yet';
 }
-renderStatic();renderAttempts();reset();resize();tick();
+applyMode();renderStatic();renderAttempts();reset();resize();tick();
+if(vrMode)log('System','One-click VR mode on (controller input)');
 })();
 </script>
 </body>
