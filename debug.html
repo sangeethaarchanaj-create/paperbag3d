@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+<title>Paper Bag Crafting Simulator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: navy console rail + workbench stage with step / device / trainer column, log underneath */
+:root{
+  --bg:#eaf0f4; --surface:#ffffff; --surface-2:#f3f7f9; --ink:#10263b; --muted:#5a6c7d; --line:#dbe4ea;
+  --rail:#0e2c4a; --rail-2:#163c60; --rail-ink:#e4eef6; --rail-muted:#9fb6ca;
+  --teal:#12807a; --teal-ink:#ffffff; --teal-soft:#d4eeeb; --teal-soft-ink:#0c5d58; --sky:#9fd6da; --sky-ink:#0c3b4a;
+  --ok:#17803d; --ok-soft:#dcf2e3; --warn:#a85b06; --warn-soft:#fbeedb; --bad:#b93a12; --bad-soft:#fbe3da;
+  --stage-a:#dfe8ee; --stage-b:#f5f8fa; --shadow:0 1px 2px rgba(16,38,59,.06),0 4px 16px rgba(16,38,59,.06);
+  --f-display:"Lexend",system-ui,sans-serif; --f-body:"Source Sans 3",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0a1520; --surface:#111f2c; --surface-2:#172938; --ink:#e2ecf4; --muted:#93a8ba; --line:#21364a;
+  --rail:#071423; --rail-2:#10283f; --rail-ink:#e4eef6; --rail-muted:#8aa3b8;
+  --teal:#26a99f; --teal-ink:#04211f; --teal-soft:#123a38; --teal-soft-ink:#8fe0d7; --sky:#1d5560; --sky-ink:#d7f3f5;
+  --ok:#5fd68a; --ok-soft:#133523; --warn:#f0b35a; --warn-soft:#3a2a12; --bad:#ff8f6b; --bad-soft:#3d1f15;
+  --stage-a:#0f2231; --stage-b:#1a3144; --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 18px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a1520; --surface:#111f2c; --surface-2:#172938; --ink:#e2ecf4; --muted:#93a8ba; --line:#21364a;
+  --rail:#071423; --rail-2:#10283f; --rail-ink:#e4eef6; --rail-muted:#8aa3b8;
+  --teal:#26a99f; --teal-ink:#04211f; --teal-soft:#123a38; --teal-soft-ink:#8fe0d7; --sky:#1d5560; --sky-ink:#d7f3f5;
+  --ok:#5fd68a; --ok-soft:#133523; --warn:#f0b35a; --warn-soft:#3a2a12; --bad:#ff8f6b; --bad-soft:#3d1f15;
+  --stage-a:#0f2231; --stage-b:#1a3144; --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 18px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.01em}
+button{font:inherit;color:inherit}
+button:focus-visible,select:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100%}
+/* rail */
+.rail{background:var(--rail);color:var(--rail-ink);padding-block:28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;display:flex;flex-direction:column;gap:28px}
+.brand{font-family:var(--f-display);font-size:1.45rem;font-weight:600;line-height:1.2;padding-inline:8px}
+.brand small{display:block;font-family:var(--f-body);font-size:.75rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--rail-muted);margin-top:6px}
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav button{display:flex;align-items:center;gap:14px;padding:12px 14px;border:0;border-radius:8px;background:transparent;color:var(--rail-ink);font-size:1rem;cursor:pointer;text-align:left;border-left:3px solid transparent}
+.nav button:hover{background:var(--rail-2)}
+.nav button[aria-current="true"]{background:var(--rail-2);border-left-color:var(--teal)}
+.nav svg{width:22px;height:22px;flex:none}
+.rail-foot{margin-top:auto;font-size:.8rem;color:var(--rail-muted);padding-inline:8px}
+/* main */
+main{padding-block:22px 32px;padding-left:22px;padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.head{display:flex;align-items:center;gap:22px;padding:16px 22px;flex-wrap:wrap}
+.avatar{width:58px;height:58px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;flex:none}
+.avatar svg{width:30px;height:30px;color:var(--ink)}
+.meta{display:flex;flex-direction:column;gap:2px;padding-left:22px;border-left:1px solid var(--line);min-width:0}
+.meta:first-of-type{border-left:0;padding-left:0}
+.meta span{font-size:.8rem;color:var(--muted)}
+.meta strong,.meta select{font-family:var(--f-display);font-size:1.25rem;font-weight:600}
+.meta select{background:transparent;border:0;color:var(--ink);padding:0;cursor:pointer;max-width:100%}
+.meta select option{color:#10263b;background:#fff}
+.tabnum{font-variant-numeric:tabular-nums}
+/* sim grid */
+.sim{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px}
+.side{display:flex;flex-direction:column;gap:18px;min-width:0}
+.stage{position:relative;height:clamp(380px,62vh,660px);overflow:hidden;border-radius:12px;border:1px solid var(--line);background:radial-gradient(120% 90% at 50% 10%,var(--stage-b),var(--stage-a));box-shadow:var(--shadow)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.guide{position:absolute;left:14px;top:14px;right:66px;max-width:460px;background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.guide.flash{animation:flash .9s ease}
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--teal)}100%{box-shadow:0 0 0 14px transparent}}
+.guide-top{display:flex;gap:8px;align-items:center;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.guide h3{font-size:1.05rem}
+.guide p{margin:0;color:var(--muted);font-size:.93rem}
+.hold{height:6px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.hold i{display:block;height:100%;width:0;background:var(--teal);transition:width .08s linear}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:var(--teal-soft);color:var(--teal-soft-ink)}
+.toast{position:absolute;left:50%;bottom:84px;transform:translate(-50%,20px);background:var(--bad-soft);color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 30%,transparent);padding:9px 14px;border-radius:8px;font-weight:600;font-size:.9rem;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.good{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.guide small{font-size:.78rem;color:var(--muted)}
+.actionbar{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:8px;max-width:calc(100% - 28px)}
+.act{position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;padding:14px 24px;border-radius:999px;border:0;background:var(--teal);color:var(--teal-ink);font-family:var(--f-display);font-weight:600;font-size:1.05rem;cursor:pointer;box-shadow:0 6px 22px rgba(4,20,34,.3);user-select:none;-webkit-user-select:none;touch-action:none;white-space:nowrap}
+.act:hover{filter:brightness(1.07)}.act:active{transform:scale(.98)}
+.act:disabled{opacity:.6;cursor:default}
+.act span,.act kbd{position:relative}
+.act kbd{font:600 .72rem var(--f-body);padding:2px 7px;border-radius:5px;background:rgba(255,255,255,.25)}
+.act i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.32)}
+.tools{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px}
+.tool{position:relative;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow)}
+.tool svg{width:19px;height:19px}
+.tool .x{position:absolute;inset:0;display:grid;place-items:center}
+.marker{position:absolute;left:0;top:0;transform:translate(-50%,-50%);pointer-events:none;display:grid;place-items:center}
+.marker .dot{width:14px;height:14px;border-radius:50%;background:#5ff0df;box-shadow:0 0 0 3px #0e2c4a}
+.marker .ring{position:absolute;width:56px;height:56px;border-radius:50%;border:3px solid #5ff0df;animation:ping 1.3s ease-out infinite}
+.marker .lbl{position:absolute;top:34px;background:#0e2c4a;color:#e9f4fb;font-weight:600;font-size:.85rem;padding:5px 11px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+@keyframes ping{0%{transform:scale(.5);opacity:1}100%{transform:scale(1.35);opacity:0}}
+.pring{position:absolute;width:70px;height:70px;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;background:conic-gradient(#5ff0df calc(var(--p,0)*360deg),rgba(255,255,255,.35) 0);-webkit-mask:radial-gradient(circle,transparent 26px,#000 27px);mask:radial-gradient(circle,transparent 26px,#000 27px)}
+.panel{padding:16px 18px}
+.panel-h{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.panel-h svg{width:22px;height:22px;flex:none}
+.panel-h h2{font-size:1.1rem}
+.panel-h .tabnum{margin-left:auto;color:var(--muted);font-size:.9rem}
+/* steps */
+.steps{list-style:none;margin:0;padding:0}
+.steps li{display:grid;grid-template-columns:30px minmax(0,1fr) 84px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.steps li:last-child{border-bottom:0}
+.num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.85rem;background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.steps li.done .num,.steps li.cur .num{background:var(--teal);color:var(--teal-ink);border-color:var(--teal)}
+.steps li.cur .num{box-shadow:0 0 0 4px var(--teal-soft)}
+.st-t{font-size:.93rem;line-height:1.25}
+.st-t small{display:block;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em}
+.steps li.pending .st-t{color:var(--muted)}
+.bar{height:8px;border-radius:5px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:5px}
+/* devices */
+.dev{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:.93rem}
+.dev:last-child{border-bottom:0}
+.dev svg{width:24px;height:24px}
+.chip{font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--ok-soft);color:var(--ok);transition:.2s;min-width:84px;text-align:center}
+.chip.active{background:var(--teal);color:var(--teal-ink)}
+/* actions */
+.actions{display:flex;flex-direction:column;gap:10px;padding-top:6px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 16px;border-radius:9px;border:1px solid transparent;font-weight:600;font-size:1rem;cursor:pointer;transition:filter .15s,transform .05s}
+.btn:hover{filter:brightness(1.06)}.btn:active{transform:translateY(1px)}
+.btn svg{width:20px;height:20px}
+.btn-primary{background:var(--rail-2);color:var(--rail-ink)}
+.btn-sky{background:var(--sky);color:var(--sky-ink)}
+.btn-ghost{background:var(--surface-2);border-color:var(--line);color:var(--ink)}
+/* log */
+.logwrap{max-height:230px;overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th{position:sticky;top:0;background:var(--surface-2);text-align:left;font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line)}
+td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--muted)}
+.ev{font-size:.78rem;font-weight:600;padding:2px 8px;border-radius:5px;background:var(--surface-2);white-space:nowrap}
+.ev-guidance{background:var(--teal-soft);color:var(--teal-soft-ink)}
+.ev-interaction{background:var(--ok-soft);color:var(--ok)}
+.ev-error{background:var(--bad-soft);color:var(--bad)}
+.ev-assessment{background:var(--warn-soft);color:var(--warn)}
+/* other views */
+.view-head{display:flex;flex-direction:column;gap:4px}
+.view-head p{margin:0;color:var(--muted);max-width:65ch}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.ocard{padding:18px;display:flex;flex-direction:column;gap:10px}
+.ocard h3{font-size:1.05rem}
+.ocard p{margin:0;color:var(--muted);font-size:.92rem}
+.status-planned{background:var(--surface-2);color:var(--muted)}
+.content-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px}
+.content-grid ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:10px}
+.content-grid li p{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.spec{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:.93rem}
+.spec dt{color:var(--muted)}.spec dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.empty{padding:22px;color:var(--muted);text-align:center}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(6,18,30,.55);display:grid;place-items:center;padding:16px;z-index:50}
+.sheet{width:min(560px,100%);max-height:calc(100% - 20px);overflow:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.score b{font-family:var(--f-display);font-size:3rem;line-height:1;color:var(--teal)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.kpi span{display:block;font-size:.78rem;color:var(--muted)}
+.kpi strong{font-family:var(--f-display);font-size:1.25rem;font-variant-numeric:tabular-nums}
+.row-btns{display:flex;gap:10px;flex-wrap:wrap}.row-btns .btn{flex:1}
+@media (max-width:1180px){.sim{grid-template-columns:minmax(0,1fr)}.side{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{padding-block:14px;padding-right:max(16px,env(safe-area-inset-right,0px));gap:12px}
+  .brand{font-size:1.15rem}.brand small{display:none}.rail-foot{display:none}
+  .nav{flex-direction:row;overflow-x:auto;gap:4px}
+  .nav button{padding:9px 12px;border-left:0;border-bottom:3px solid transparent;white-space:nowrap;font-size:.92rem}
+  .nav button[aria-current="true"]{border-bottom-color:var(--teal)}
+  main{padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .meta{border-left:0;padding-left:0}
+  .content-grid{grid-template-columns:minmax(0,1fr)}
+  .stage{height:420px}
+  .kpis{grid-template-columns:1fr 1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* v3 additions */
+.steps li{padding:7px 0;grid-template-columns:30px minmax(0,1fr) 70px 26px}
+.watch{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);display:grid;place-items:center;cursor:pointer;color:var(--ink);padding:0}
+.watch svg{width:12px;height:12px}
+.watch:hover{background:var(--teal-soft);color:var(--teal-soft-ink)}
+.guide .gbtns{display:flex;gap:8px;flex-wrap:wrap;pointer-events:auto}
+.gbtn{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.gbtn svg{width:12px;height:12px}
+.gbtn:hover{background:var(--teal-soft);color:var(--teal-soft-ink)}
+.lower{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:18px}
+.vgrid{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:14px;padding-top:8px}
+.vgrid video{width:100%;max-width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;display:block}
+.chapters{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;max-height:280px;overflow:auto}
+.chapters button{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:.86rem;line-height:1.25;color:var(--ink)}
+.chapters button:hover{background:var(--surface-2)}
+.chapters button .tc{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
+.chapters li.cur button{background:var(--teal-soft);color:var(--teal-soft-ink)}
+.chapters li.cur .tc{color:var(--teal-soft-ink)}
+.chapters li.playing button{outline:2px solid var(--teal);outline-offset:-2px}
+.tog{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted);cursor:pointer}
+.tog input{accent-color:var(--teal);width:16px;height:16px}
+.panel-h .tog{margin-left:auto}
+.voice{display:flex;flex-direction:column;gap:12px;padding-top:8px}
+.mic{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 18px;border-radius:12px;border:2px solid var(--teal);background:var(--surface);color:var(--teal-soft-ink);font-family:var(--f-display);font-weight:600;font-size:1rem;cursor:pointer}
+.mic svg{width:22px;height:22px}
+.mic[aria-pressed="true"]{background:var(--teal);color:var(--teal-ink);animation:micpulse 1.4s ease-in-out infinite}
+@keyframes micpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--teal) 45%,transparent)}50%{box-shadow:0 0 0 10px transparent}}
+.vhint{margin:0;font-size:.88rem;color:var(--muted)}
+.heard{min-height:46px;padding:10px 12px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);font-size:.95rem}
+.heard small{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+.reply{padding:10px 12px;border-radius:8px;font-size:.93rem;border:1px solid var(--line);background:var(--surface-2)}
+.reply.ok{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 25%,transparent)}
+.reply.bad{background:var(--bad-soft);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 25%,transparent)}
+.sayform{display:flex;gap:8px}
+.sayform input{flex:1;min-width:0;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit}
+.sayform input:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.sayform .btn{padding:10px 14px}
+.vstatus{font-size:.82rem;color:var(--warn)}
+.loghead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.loghead .sbtn{margin-left:auto}
+.sbtn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font-weight:600;font-size:.85rem;cursor:pointer}
+.sbtn+.sbtn{margin-left:0}
+.ev-voice{background:color-mix(in srgb,var(--sky) 60%,var(--surface));color:var(--sky-ink)}
+.ev-video{background:var(--surface-2);color:var(--muted)}
+.logsheet{width:min(820px,100%)}
+@media (max-width:1180px){.lower{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.vgrid{grid-template-columns:minmax(0,1fr)}.chapters{max-height:none}}
+
+.sim{grid-template-columns:minmax(0,1fr) 340px}
+.stage{height:clamp(520px,74vh,740px)}
+.lower{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,.85fr)}
+.stack3{display:flex;flex-direction:column;gap:18px;min-width:0}
+@media (max-width:1400px){.lower{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}.stack3{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
+@media (max-width:1180px){.sim{grid-template-columns:minmax(0,1fr)}.lower{grid-template-columns:minmax(0,1fr)}.stage{height:clamp(420px,62vh,600px)}}
+@media (max-width:860px){.stage{height:440px}}
+</style>
+</head>
+<body>
+<div id="dbg" style="position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#111;color:#7CFC9A;font:15px/1.4 monospace;padding:10px 12px;border-radius:8px;max-height:45vh;overflow:auto;white-space:pre-wrap">DIAGNOSTIC: HTML loaded, but JavaScript has NOT run.</div>
+<script>
+(function(){var box=document.getElementById('dbg'),lines=[];
+function log(t,c){lines.push(t);box.innerHTML='';lines.forEach(function(l){var d=document.createElement('div');d.textContent=l;if(/ERROR|FAIL|0x0/.test(l))d.style.color='#ff8a7a';box.appendChild(d)})}
+window.__dbg=log;log('DIAGNOSTIC v1 - JavaScript is running');log('Browser: '+navigator.userAgent);
+log('Window: '+innerWidth+'x'+innerHeight+'  pixel ratio: '+devicePixelRatio);
+window.addEventListener('error',function(e){log('ERROR: '+(e.message||e.type)+(e.filename?'  @ line '+e.lineno+':'+e.colno:'')+(e.target&&e.target.src?'  resource: '+e.target.src:''))},true);
+window.addEventListener('unhandledrejection',function(e){log('ERROR (promise): '+(e.reason&&e.reason.message||e.reason))});
+var frames=0;(function f(){frames++;requestAnimationFrame(f)})();
+window.addEventListener('load',function(){log('Page "load" event fired');
+  setTimeout(function(){var c=document.querySelector('#stage canvas'),st=document.getElementById('stage');
+    log('Stage box: '+(st?Math.round(st.getBoundingClientRect().width)+'x'+Math.round(st.getBoundingClientRect().height):'MISSING'));
+    log(c?'Canvas: '+c.width+'x'+c.height:'FAIL: canvas was never created (main script stopped early)');
+    log('Animation frames in 3 s: '+frames+(frames<10?'  FAIL: page is not animating':''));
+    var sc=document.getElementById('stepCount');log('Step counter: '+(sc?sc.textContent:'MISSING'));
+    log('Done. Please photograph this box.')},3000)});
+})();
+</script>
+<div class="app">
+  <aside class="rail">
+    <div class="brand">Vocational Training Console<small>Simulation lab</small></div>
+    <nav class="nav" aria-label="Console sections">
+      <button data-view="learners"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="8" r="3.5"/><path d="M2 19c0-3.6 3.1-6 7-6s7 2.4 7 6v1H2z"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 13.2c3.4-.4 6.5 1.5 6.5 4.8v2h-4.4v-1c0-2.3-.8-4.2-2.1-5.8z"/></svg>Learners</button>
+      <button data-view="trades"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.7 6.3l-3.4 3.4-2.6-.6-.6-2.6 3.4-3.4a5.5 5.5 0 0 0-7.1 6.6L3 18.1a2 2 0 1 0 2.9 2.9l8.4-8.4a5.5 5.5 0 0 0 7.4-6.3z"/></svg>Trades</button>
+      <button data-view="sessions" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 15l2.5 2.5L16 13" stroke-linecap="round"/></svg>Sessions</button>
+      <button data-view="content"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5zM8 13h8v1.6H8zm0 3.5h8v1.6H8z"/></svg>Content</button>
+      <button data-view="assessment"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="9" width="4" height="12" rx="1"/></svg>Assessment</button>
+    </nav>
+    <div class="rail-foot">Simulation mode. 2D top view. Mouse, trackpad or touch act as finger input (drag empty space to pan, scroll to zoom); the microphone is the voice input.</div>
+  </aside>
+
+  <main>
+    <section class="card head" aria-label="Session details">
+      <div class="avatar"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c0-4.4 3.8-7.3 8.5-7.3s8.5 2.9 8.5 7.3z"/></svg></div>
+      <div class="meta"><span>Learner</span><select id="learnerSel" aria-label="Select learner"></select></div>
+      <div class="meta"><span>Trade</span><strong>Paper bag crafting</strong></div>
+      <div class="meta"><span>Session mode</span><strong>Simulation</strong></div>
+      <div class="meta"><span>Elapsed</span><strong class="tabnum" id="elapsed">00:00</strong></div>
+      <div class="meta"><span>Errors</span><strong class="tabnum" id="errCount">0</strong></div>
+    </section>
+
+    <!-- SESSIONS -->
+    <section data-panel="sessions" style="display:flex;flex-direction:column;gap:18px">
+      <div class="sim">
+        <div class="stage" id="stage">
+          <div class="guide" id="guide">
+            <div class="guide-top"><span id="gStep">Step 1 of 11</span><span class="tag" id="gType">Position</span></div>
+            <h3 id="gTitle">Place the sheet</h3>
+            <p id="gText"></p>
+            <div class="hold" id="gHold" hidden><i id="gHoldBar"></i></div>
+            <div class="gbtns"><button class="gbtn" id="gWatch"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Watch this step</button><button class="gbtn" id="gSpeak"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4z"/></svg>Read aloud</button></div>
+          </div>
+          <div class="toast" id="toast"></div>
+          <div class="marker" id="marker" hidden><span class="ring"></span><span class="dot"></span><span class="lbl" id="markLbl"></span></div>
+          <div class="pring" id="pring" hidden></div>
+          <div class="tools">
+            <button class="tool" id="btnCenter" title="Recenter view" aria-label="Recenter view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+            <button class="tool" id="btnZoomIn" title="Zoom in" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="tool" id="btnZoomOut" title="Zoom out" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <button class="tool" id="btnSound" title="Sound on" aria-label="Toggle sound effects" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="x" id="sndOff" hidden><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4"><path d="M4 4l16 16"/></svg></span></button>
+          </div>
+          <div class="actionbar"><button class="act" id="actBtn"><i id="actFill"></i><span id="actLbl">Slide onto guide</span><kbd>Space</kbd></button></div>
+        </div>
+        <div class="side">
+          <div class="card panel">
+            <div class="panel-h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm2 4v1.8h10V7zm0 4.1v1.8h10v-1.8zm0 4.1V17h7v-1.8z"/></svg><h2>Activity progress</h2><span class="tabnum" id="stepCount">0/11</span></div>
+            <ol class="steps" id="steps"></ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="lower">
+        <div class="card panel">
+          <div class="panel-h"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M18 10l4-3v10l-4-3z"/></svg><h2>Reference video</h2><label class="tog"><input type="checkbox" id="autoClip"> Play clip at each new step</label></div>
+          <div class="vgrid">
+            <video id="vid" src="paper-bag.mp4" controls playsinline preload="metadata"></video>
+            <ol class="chapters" id="chapters"></ol>
+          </div>
+        </div>
+        <div class="card panel voicecard">
+          <div class="panel-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><h2>Voice coach</h2></div>
+          <div class="voice">
+            <button class="mic" id="micBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="micLbl">Start listening</span></button>
+            <p class="vhint">Say the step you are about to do, for example “apply glue” or “crease the bottom”. A correct step is carried out; a wrong one is corrected out loud. Say “help” to hear the current step or “show video” for the clip.</p>
+            <div class="vstatus" id="vstatus" hidden></div>
+            <div class="heard" id="heard"><small>Heard</small><span id="heardTxt">Nothing yet</span></div>
+            <div class="reply" id="reply">Waiting for a step name.</div>
+            <form class="sayform" id="sayForm"><input id="sayInput" autocomplete="off" placeholder="Or type what you would say"><button class="btn btn-ghost" type="submit">Check</button></form>
+            <label class="tog"><input type="checkbox" id="speakTog" checked> Spoken guidance and corrections</label>
+          </div>
+        </div>
+        <div class="stack3">
+          <div class="card panel">
+            <div class="panel-h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.5 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1L11 21h4l.4-2.7a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg><h2>Device status</h2></div>
+            <div class="dev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 7h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4l-2-2.5h-4L8 17H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zm3 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm10 0a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z"/></svg><span>View tracking</span><span class="chip" id="chip-headset">Simulated</span></div>
+            <div class="dev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 2.5a1.5 1.5 0 0 1 3 0V10h.6V4a1.5 1.5 0 0 1 3 0v7h.6V6a1.5 1.5 0 0 1 3 0v9.5c0 3.6-2.8 6.5-6.4 6.5h-1.3c-2 0-3.8-1-4.9-2.6L3.3 13.6a1.6 1.6 0 0 1 2.5-2l1.8 2V5a1.5 1.5 0 0 1 3 0z"/></svg><span>Finger input</span><span class="chip" id="chip-finger">Simulated</span></div>
+            <div class="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="6" ry="3"/><path d="M6 6v4c0 1.7 2.7 3 6 3s6-1.3 6-3V6"/><ellipse cx="12" cy="18" rx="6" ry="3"/><path d="M12 13v2"/></svg><span>Pressure contact</span><span class="chip" id="chip-pressure">Simulated</span></div>
+            <div class="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11V5.5a2 2 0 0 1 4 0V12l4 .8a2 2 0 0 1 1.6 2.2L18 21H10l-3.5-5"/><path d="M5.5 6.5a5.5 5.5 0 0 1 11 0" stroke-linecap="round"/></svg><span>Touch output</span><span class="chip" id="chip-touch">Simulated</span></div>
+            <div class="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Voice input</span><span class="chip" id="chip-voice">Simulated</span></div>
+          </div>
+          <div class="card panel">
+            <div class="panel-h"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.5" r="4"/><path d="M4 21c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5z"/></svg><h2>Trainer actions</h2></div>
+            <div class="actions">
+              <button class="btn btn-primary" id="btnReplay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Replay guidance</button>
+              <button class="btn btn-sky" id="btnRepeat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>Repeat activity</button>
+              <button class="btn btn-ghost" id="btnReview"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm2 11v1.6h8V13zm0 3.5v1.6h8v-1.6z"/></svg>Review session</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <div class="panel-h loghead"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="3" height="3" rx=".5"/><rect x="8" y="4.6" width="13" height="1.8" rx=".9"/><rect x="3" y="10.5" width="3" height="3" rx=".5"/><rect x="8" y="11.1" width="13" height="1.8" rx=".9"/><rect x="3" y="17" width="3" height="3" rx=".5"/><rect x="8" y="17.6" width="13" height="1.8" rx=".9"/></svg><h2>Interaction log</h2><button class="sbtn" id="copyCsv">Copy CSV</button><button class="sbtn" id="dlCsv" hidden>Download CSV</button></div>
+        <div class="logwrap" id="logwrap"><table><thead><tr><th>Time (hh:mm:ss)</th><th>Event type</th><th>Event detail</th></tr></thead><tbody id="logBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- LEARNERS -->
+    <section data-panel="learners" hidden style="display:flex;flex-direction:column;gap:18px">
+      <div class="view-head"><h2>Learners</h2><p>Sample learner profiles. Pick one to start a fresh paper bag session under their name.</p></div>
+      <div class="grid-cards" id="learnerCards"></div>
+    </section>
+
+    <!-- TRADES -->
+    <section data-panel="trades" hidden style="display:flex;flex-direction:column;gap:18px">
+      <div class="view-head"><h2>Trades</h2><p>Livelihood skill modules in the simulation lab. Paper bag crafting is live; the others are placeholders for upcoming modules.</p></div>
+      <div class="grid-cards">
+        <div class="card ocard"><span class="tag">Available</span><h3>Paper bag crafting</h3><p>Eleven-step block-bottom kraft bag with rope handles, matched to the reference video.</p><button class="btn btn-primary" data-go="sessions">Open session</button></div>
+        <div class="card ocard"><span class="tag status-planned">Planned</span><h3>Envelope folding</h3><p>Diamond-fold envelope from A4 sheet with gummed flap.</p></div>
+        <div class="card ocard"><span class="tag status-planned">Planned</span><h3>Cloth bag stitching</h3><p>Straight-seam tote with machine-pedal pressure input.</p></div>
+        <div class="card ocard"><span class="tag status-planned">Planned</span><h3>Candle moulding</h3><p>Wax melt, wick setting and mould release with heat cues.</p></div>
+      </div>
+    </section>
+
+    <!-- CONTENT -->
+    <section data-panel="content" hidden style="display:flex;flex-direction:column;gap:18px">
+      <div class="view-head"><h2>Content · Block-bottom paper bag</h2><p>Reference card for the trainer. Steps and timings follow the reference video; dimensions match the 2D model (one grid square on the cutting mat is 1 cm).</p></div>
+      <div class="content-grid">
+        <div class="card panel"><div class="panel-h"><h2>Procedure</h2></div><ol id="contentSteps"></ol></div>
+        <div class="card panel" style="display:flex;flex-direction:column;gap:14px">
+          <div class="panel-h"><h2>Sheet specification</h2></div>
+          <dl class="spec">
+            <dt>Paper</dt><dd>Kraft, 80–100 GSM</dd>
+            <dt>Flat sheet</dt><dd>25.4 × 20.0 cm</dd>
+            <dt>Glue flap</dt><dd>1.4 cm</dd>
+            <dt>Flat tube width</dt><dd>12.0 cm</dd>
+            <dt>Bottom allowance</dt><dd>4.5 cm</dd>
+            <dt>Finished bag</dt><dd>8 W × 4 D × 14 H cm</dd>
+            <dt>Handles</dt><dd>2 cords, knotted ends</dd>
+          </dl>
+          <div class="panel-h" style="margin-top:6px"><h2>Tools</h2></div>
+          <p style="margin:0;color:var(--muted)">Liquid glue, single-hole punch, cotton or paper cord, self-healing cutting mat with 1 cm grid.</p>
+          <div class="panel-h" style="margin-top:6px"><h2>Quality checks</h2></div>
+          <p style="margin:0;color:var(--muted)">Seam glued along the full length, bottom diamond flaps meet in the centre, sharp gusset creases, holes level on both faces, knots large enough not to pull through.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASSESSMENT -->
+    <section data-panel="assessment" hidden style="display:flex;flex-direction:column;gap:18px">
+      <div class="view-head"><h2>Assessment</h2><p>Completed attempts saved in this browser, with their full logs. Score starts at 100, loses 6 points per error and 1 point for every 6 seconds beyond 3 minutes.</p></div>
+      <div class="card"><div style="overflow-x:auto"><table><thead><tr><th>Finished</th><th>Learner</th><th>Time</th><th>Errors</th><th>Voice</th><th>Score</th><th>Level</th><th></th></tr></thead><tbody id="attemptBody"></tbody></table></div><div class="empty" id="attemptEmpty">No completed attempts yet. Finish a session to see it here.</div></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h2 id="mTitle">Session review</h2>
+    <div class="score"><b class="tabnum" id="mScore">–</b><div><div class="tag" id="mLevel">In progress</div><p style="margin:6px 0 0;color:var(--muted)" id="mNote"></p></div></div>
+    <div class="kpis"><div class="kpi"><span>Time</span><strong id="mTime">0:00</strong></div><div class="kpi"><span>Errors</span><strong id="mErr">0</strong></div><div class="kpi"><span>Steps done</span><strong id="mSteps">0/11</strong></div></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Step</th><th>Done by</th><th>Time</th></tr></thead><tbody id="mRows"></tbody></table></div>
+    <div class="row-btns"><button class="btn btn-sky" id="mRepeat">Repeat activity</button><button class="btn btn-ghost" id="mClose">Close</button></div>
+  </div>
+</div>
+<div class="modal" id="logModal" hidden>
+  <div class="card sheet logsheet" role="dialog" aria-modal="true" aria-labelledby="lmTitle">
+    <h2 id="lmTitle">Attempt log</h2>
+    <p style="margin:0;color:var(--muted)" id="lmSub"></p>
+    <div class="logwrap" style="max-height:50vh"><table><thead><tr><th>Time</th><th>Event type</th><th>Event detail</th></tr></thead><tbody id="lmBody"></tbody></table></div>
+    <div class="row-btns"><button class="btn btn-ghost" id="lmCopy">Copy CSV</button><button class="btn btn-ghost" id="lmClose">Close</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+/* ---------- the 10 steps, timed against the reference video ---------- */
+const STEPS=[
+ {key:'place',type:'Position',title:'Place the sheet',guide:'Drag the kraft sheet onto the dashed outline on the cutting mat.',t:2,parts:['sheet','half','flapR','flapL'],mark:'Drag onto the outline',act:'Slide onto guide',
+  kw:['place','position','put the sheet','align','keep the sheet','lay','sheet on'],content:'Lay the 25.4 × 20 cm sheet flat, short sides left and right, squared to the mat grid.'},
+ {key:'center',type:'Fold',title:'Fold in half and crease',guide:'Press and hold on the right half of the sheet. It folds over to the left edge, the centre gets a firm crease, and the sheet opens back out flat.',dur:2.6,t:6,parts:['half','flapR'],mark:'Hold to fold in half',act:'Hold: fold in half',
+  kw:['fold in half','in half','half','centre crease','center crease','crease the centre','crease the center','middle','first fold','fold the sheet','crease the sheet'],content:'Fold the sheet in half, right edge to left edge, press a sharp crease along the centre and open it out again. The crease marks the middle of the bag.'},
+ {key:'flapR',type:'Fold',title:'Fold the glue flap',guide:'Press and hold on the narrow strip at the right edge to fold it over. This 1.4 cm strip becomes the glue flap.',dur:1.6,t:22,parts:['flapR'],mark:'Hold to fold the strip',act:'Hold: fold glue flap',
+  kw:['glue flap','flap','strip','narrow','right edge','small fold'],content:'Fold a 1.4 cm strip along the right edge and crease it.'},
+ {key:'glue',type:'Glue',title:'Apply glue on the flap',guide:'Press and hold on the folded strip to run glue along its full length.',dur:1.6,t:33,parts:['flapR','glue'],mark:'Hold to glue',act:'Hold: apply glue',
+  kw:['apply glue','glue','paste','gum','adhesive'],content:'Run a thin, continuous line of glue along the whole flap.'},
+ {key:'foldL',type:'Press',title:'Fold the side over and seal',guide:'Press and hold on the wide left panel to fold it over onto the glued strip and press the seam flat.',dur:2.2,t:58,parts:['flapL'],mark:'Hold to fold over',act:'Hold: fold and seal',
+  kw:['fold the side','fold over','left side','left panel','left','seal','seam','stick','join','make the tube','tube'],content:'Fold the left side over onto the flap and press along the seam to make a flat tube.'},
+ {key:'creaseB',type:'Fold',title:'Fold and crease the bottom',guide:'Press and hold on the bottom strip to fold it up, crease it firmly and fold it back down.',dur:2.2,t:76,parts:['bottom'],mark:'Hold to crease',act:'Hold: crease bottom',
+  kw:['crease the bottom','crease bottom','fold the bottom','fold bottom','fold up','bottom','base'],content:'Fold 4.5 cm of the bottom up, crease hard, then unfold.'},
+ {key:'diamond',type:'Shape',title:'Open the bottom into a diamond',guide:'Press and hold on the bottom to pull the corners out and flatten it into a diamond.',dur:2,t:94,parts:['bottom','diamond'],mark:'Hold to open',act:'Hold: open diamond',
+  kw:['diamond','open the bottom','open bottom','pull the corners','corners','spread'],content:'Open the bottom end and press the corners out into a flat diamond.'},
+ {key:'closeB',type:'Glue',title:'Glue and close the bottom',guide:'Press and hold on the diamond to glue it, then fold the top and bottom flaps to meet in the centre.',dur:3,t:120,parts:['diamond'],mark:'Hold to close',act:'Hold: close bottom',
+  kw:['close the bottom','close bottom','glue the bottom','glue bottom','seal the bottom','close','flaps','centre','center'],content:'Glue the diamond and fold its top and bottom points to the centre so they overlap.'},
+ {key:'gusset',type:'Fold',title:'Crease the side gussets',guide:'Press and hold on a side edge to fold the sides inward and crease them.',dur:2.4,t:212,parts:['side'],mark:'Hold to crease sides',act:'Hold: crease gussets',
+  kw:['gusset','gussets','crease the sides','crease sides','side crease','fold the sides','fold sides','sides'],content:'Fold each long side inward about 2 cm and crease, so the bag can expand.'},
+ {key:'open',type:'Shape',title:'Open the bag and punch holes',guide:'Press and hold on the bag to open it out, stand it up and punch two handle holes on each face.',dur:3,t:262,parts:['tube','side','bottom','diamond','bag'],mark:'Hold to open the bag',act:'Hold: open and punch',
+  kw:['open the bag','open bag','stand','punch','hole','holes','open'],content:'Open the bag, square the bottom, then punch two holes near the top of the front and back.'},
+ {key:'handles',type:'Tie',title:'Thread and knot the handles',guide:'Press and hold on the bag to thread the cord through the holes and tie a knot at each end.',dur:4,t:288,parts:['bag'],mark:'Hold to tie handles',act:'Hold: attach handles',
+  kw:['handles','handle','rope','cord','thread','knot','tie','string'],content:'Knot one cord end, thread it through both holes on one face and knot the other end. Repeat on the back.'}
+];
+const N=STEPS.length,VID_END=414,IDX=k=>STEPS.findIndex(s=>s.key===k);
+const LEARNERS=[{n:'Learner 01',b:'Batch A · Morning'},{n:'Learner 02',b:'Batch A · Morning'},{n:'Learner 03',b:'Batch B · Afternoon'},{n:'Learner 04',b:'Batch B · Afternoon'}];
+const tc=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+
+/* ---------- state ---------- */
+let S;
+function freshState(){return{step:0,prog:0,vals:{},standing:false,done:false,lift:0,carry:{x:.45,z:.6},yaw:.2,
+  holding:false,dragging:false,dragOff:{x:0,z:0},near:false,hover:false,auto:false,autoHold:false,ptrHold:false,btnHold:false,
+  errors:0,voiceCount:0,start:performance.now(),end:0,stepStart:performance.now(),stepTimes:[],stepBy:[],log:[],saved:false,via:'touch'}}
+const T={headset:0,finger:0,touch:0};
+let learner=LEARNERS[0].n;
+const V=k=>S.vals[k]||0;
+
+/* ---------- UI ---------- */
+const sel=$('learnerSel');
+LEARNERS.forEach(l=>{const o=document.createElement('option');o.textContent=l.n;sel.appendChild(o)});
+sel.onchange=()=>{learner=sel.value;reset('Learner changed to '+learner)};
+const playSvg='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>';
+function renderStatic(){
+  $('steps').innerHTML=STEPS.map((s,i)=>`<li id="st${i}"><span class="num">${i+1}</span><span class="st-t"><small>${s.type}</small>${s.title}</span><span class="bar"><i id="sb${i}"></i></span><button class="watch" data-ch="${i}" title="Watch step ${i+1} in the video" aria-label="Watch step ${i+1} in the video">${playSvg}</button></li>`).join('');
+  $('contentSteps').innerHTML=STEPS.map((s,i)=>`<li><strong>${s.title}</strong> <span class="tag">${s.type}</span> <span class="tabnum" style="color:var(--muted);font-size:.85rem">video ${tc(s.t)}</span><p>${s.content}</p></li>`).join('');
+  $('chapters').innerHTML=STEPS.map((s,i)=>`<li id="ch${i}"><button data-ch="${i}"><span class="tc">${tc(s.t)}</span><span>${i+1}. ${s.title}</span></button></li>`).join('');
+}
+function refreshSteps(){
+  STEPS.forEach((s,i)=>{$('st'+i).className=i<S.step?'done':i===S.step&&!S.done?'cur':'pending';
+    $('sb'+i).style.width=(i<S.step?100:i===S.step?S.prog*100:0)+'%';$('ch'+i).classList.toggle('cur',i===S.step&&!S.done)});
+  $('stepCount').textContent=Math.min(S.step,N)+'/'+N;
+  if(S.done){$('gStep').textContent='Complete';$('gType').textContent='Done';$('gTitle').textContent='Bag finished';$('gText').textContent='Open Review session for the score, or Repeat activity to practise again.';$('gHold').hidden=true}
+  else{const st=STEPS[S.step];$('gStep').textContent=`Step ${S.step+1} of ${N}`;$('gType').textContent=st.type;$('gTitle').textContent=st.title;$('gText').textContent=st.guide;$('gHold').hidden=!st.dur}
+  refreshAct();
+}
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function rowHtml(e){return `<tr><td>${e.t}</td><td><span class="ev ev-${e.type.toLowerCase()}">${e.type}</span></td><td>${esc(e.detail)}</td></tr>`}
+function log(type,detail){
+  const e={t:new Date().toTimeString().slice(0,8),type,detail};S.log.push(e);
+  $('logBody').insertAdjacentHTML('beforeend',rowHtml(e));const w=$('logwrap');w.scrollTop=w.scrollHeight;
+}
+let toastT;
+function toast(msg,good){const t=$('toast');t.textContent=msg;t.classList.toggle('good',!!good);t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
+function error(msg,spoken){S.errors++;$('errCount').textContent=S.errors;log('Error',msg);toast(msg);sfx.err();say(spoken||msg)}
+function guidance(){const st=STEPS[S.step];log('Guidance',`Displayed instruction: ${st.title}`);const g=$('guide');g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash')}
+function fmt(sec){sec=Math.round(sec);return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')}
+
+function completeStep(){
+  const st=STEPS[S.step],now=performance.now();
+  S.stepTimes[S.step]=(now-S.stepStart)/1000;S.stepBy[S.step]=S.via;S.stepStart=now;
+  log('Interaction',`Learner performed action: ${st.title}${S.via==='voice'?' (voice command)':S.via==='button'?' (console button)':''}`);
+  T.touch=now;try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}
+  S.step++;S.prog=0;S.via='touch';S.autoHold=false;
+  if(S.step>=N){finish()}else{guidance();sfx.ok();toast('Step complete',true);frame(STEPS[S.step].key);
+    say(`Well done. Step ${S.step+1}: ${STEPS[S.step].title}.`);if($('autoClip').checked)playChapter(S.step)}
+  refreshSteps();
+}
+function scoreOf(){const time=((S.end||performance.now())-S.start)/1000;return{time,score:Math.max(40,Math.round(100-S.errors*6-Math.max(0,time-180)/6))}}
+function level(sc){return sc>=85?'Proficient':sc>=65?'Developing':'Needs practice'}
+function finish(){
+  S.done=true;S.end=performance.now();sfx.done();const {time,score}=scoreOf();
+  log('Assessment',`Session complete: ${score}/100 (${level(score)}), ${fmt(time)}, ${S.errors} error${S.errors===1?'':'s'}`);
+  say(`The bag is finished. Your score is ${score} out of 100. ${level(score)}.`);
+  if(!S.saved){S.saved=true;const a=loadAttempts();
+    a.unshift({at:new Date().toLocaleString(),learner,time,errors:S.errors,voice:S.voiceCount,score,stepTimes:S.stepTimes,stepBy:S.stepBy,log:S.log.slice()});saveAttempts(a.slice(0,25));renderAttempts()}
+  setTimeout(openReview,900);
+}
+function openReview(){
+  const {time,score}=scoreOf();
+  $('mScore').textContent=S.done?score:'–';$('mLevel').textContent=S.done?level(score):'In progress';
+  $('mNote').textContent=S.done?`${learner} finished all ${N} steps.`:`${learner} is on step ${S.step+1}. The score is given when the bag is finished.`;
+  $('mTime').textContent=fmt(time);$('mErr').textContent=S.errors;$('mSteps').textContent=Math.min(S.step,N)+'/'+N;
+  const by={touch:'Hand',button:'Button',voice:'Voice'};
+  $('mRows').innerHTML=STEPS.map((s,i)=>`<tr><td>${i+1}. ${s.title}</td><td>${S.stepBy[i]?by[S.stepBy[i]]:'—'}</td><td class="tabnum">${S.stepTimes[i]!=null?S.stepTimes[i].toFixed(1)+' s':'—'}</td></tr>`).join('');
+  $('modal').hidden=false;$('mClose').focus();log('System','Trainer opened session review');
+}
+$('mClose').onclick=()=>$('modal').hidden=true;
+$('lmClose').onclick=()=>$('logModal').hidden=true;
+['modal','logModal'].forEach(id=>$(id).addEventListener('click',e=>{if(e.target.id===id)$(id).hidden=true}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('modal').hidden=true;$('logModal').hidden=true}});
+$('mRepeat').onclick=()=>{$('modal').hidden=true;reset('Trainer repeated activity')};
+$('btnRepeat').onclick=()=>reset('Trainer repeated activity');
+$('btnReview').onclick=openReview;
+function speakStep(src){const st=S.done?null:STEPS[S.step];
+  const g=$('guide');g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
+  if(!st){say('The bag is finished.');return}
+  log('Guidance',`${src||'Replayed'} instruction: ${st.title}`);say(`Step ${S.step+1}. ${st.title}. ${st.guide}`,true)}
+$('btnReplay').onclick=()=>speakStep('Trainer replayed');
+$('gSpeak').onclick=()=>speakStep('Read aloud');
+$('gWatch').onclick=()=>playChapter(S.done?N-1:S.step);
+$('steps').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(b)playChapter(+b.dataset.ch)});
+$('chapters').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(b)playChapter(+b.dataset.ch)});
+
+/* ---------- CSV + attempts ---------- */
+function csv(rows){return 'time,event_type,event_detail\n'+rows.map(r=>[r.t,r.type,r.detail].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n')}
+async function copyText(txt,btn){try{await navigator.clipboard.writeText(txt);toast('Log copied as CSV',true)}catch(e){
+  const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Log copied as CSV',true)}catch(_){toast('Select and copy the log manually')}ta.remove()}}
+$('copyCsv').onclick=()=>copyText(csv(S.log));
+let downloadsApi=null;
+const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+if(!inFrame)$('dlCsv').hidden=false;
+if(window.claude&&window.claude.use){window.claude.use('downloads').then(d=>{if(d){downloadsApi=d;$('dlCsv').hidden=false}}).catch(()=>{})}
+$('dlCsv').onclick=async()=>{const name=`paper-bag-log-${learner.replace(/\s+/g,'-').toLowerCase()}-${new Date().toISOString().slice(0,10)}.csv`,data=csv(S.log);
+  if(downloadsApi){try{await downloadsApi.save({filename:name,data})}catch(e){toast('Download was not saved')}return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/csv'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+function loadAttempts(){try{return JSON.parse(localStorage.getItem('pbsim-v3-attempts')||'[]')}catch(e){return[]}}
+function saveAttempts(a){try{localStorage.setItem('pbsim-v3-attempts',JSON.stringify(a))}catch(e){}}
+let lmRows=[];
+function renderAttempts(){
+  const a=loadAttempts();
+  $('attemptBody').innerHTML=a.map((r,i)=>`<tr><td>${esc(r.at)}</td><td>${esc(r.learner)}</td><td class="tabnum">${fmt(r.time)}</td><td class="tabnum">${r.errors}</td><td class="tabnum">${r.voice||0}</td><td class="tabnum"><strong>${r.score}</strong></td><td>${level(r.score)}</td><td><button class="sbtn" data-att="${i}">View log</button></td></tr>`).join('');
+  $('attemptEmpty').hidden=a.length>0;
+  $('learnerCards').innerHTML=LEARNERS.map(l=>{const best=a.filter(r=>r.learner===l.n).reduce((m,r)=>Math.max(m,r.score),-1);
+    return `<div class="card ocard"><h3>${l.n}</h3><p>${l.b}</p><p>Best score: <strong>${best<0?'Not attempted':best}</strong></p><button class="btn btn-ghost" data-learner="${l.n}">Start session</button></div>`}).join('');
+}
+$('attemptBody').addEventListener('click',e=>{const b=e.target.closest('[data-att]');if(!b)return;const r=loadAttempts()[+b.dataset.att];if(!r)return;
+  lmRows=r.log||[];$('lmSub').textContent=`${r.learner} · ${r.at} · score ${r.score} · ${fmt(r.time)} · ${r.errors} errors`;$('lmBody').innerHTML=lmRows.map(rowHtml).join('');$('logModal').hidden=false});
+$('lmCopy').onclick=()=>copyText(csv(lmRows));
+$('learnerCards').addEventListener('click',e=>{const b=e.target.closest('[data-learner]');if(!b)return;learner=b.dataset.learner;sel.value=learner;showView('sessions');reset('Session started for '+learner)});
+function showView(v){
+  document.querySelectorAll('.nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.view===v?'true':'false'));
+  document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==v);
+  if(v==='sessions')requestAnimationFrame(resize);
+}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>showView(b.dataset.go));
+
+/* ---------- reference video ---------- */
+const vid=$('vid');let stopAt=null,playingCh=-1;
+function playChapter(i){i=Math.max(0,Math.min(N-1,i));const start=STEPS[i].t,end=i<N-1?STEPS[i+1].t:VID_END;
+  stopAt=end;playingCh=i;try{vid.currentTime=start}catch(e){}
+  const p=vid.play();if(p&&p.catch)p.catch(()=>{});markPlaying();
+  if(S)log('Video',`Watched demo clip: step ${i+1}, ${STEPS[i].title} (${tc(start)}–${tc(end)})`);
+  vid.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function markPlaying(){STEPS.forEach((s,i)=>$('ch'+i).classList.toggle('playing',i===playingCh))}
+vid.addEventListener('timeupdate',()=>{if(stopAt!=null&&vid.currentTime>=stopAt-.05){vid.pause();stopAt=null;playingCh=-1;markPlaying()}});
+vid.addEventListener('seeking',()=>{if(stopAt!=null&&(vid.currentTime<STEPS[playingCh].t-1||vid.currentTime>stopAt+1)){stopAt=null;playingCh=-1;markPlaying()}});
+vid.addEventListener('error',()=>{const p=vid.parentNode;if(p.querySelector('.vmiss'))return;const d=document.createElement('p');d.className='vstatus vmiss';d.textContent='The video could not be played. Keep paper-bag.mp4 in the same folder as this page and open it in Chrome or Edge.';p.insertBefore(d,vid.nextSibling)});
+
+/* ---------- speech out ---------- */
+let speaking=false;
+function say(text,force){
+  if(!force&&!$('speakTog').checked)return;
+  try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-IN';u.rate=.98;
+    const v=speechSynthesis.getVoices().find(v=>/en-IN/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang));if(v)u.voice=v;
+    speaking=true;pauseRec();u.onend=u.onerror=()=>{speaking=false;resumeRec()};speechSynthesis.speak(u)}catch(e){}
+}
+
+/* ---------- voice in ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,listening=false,recRunning=false;
+function vstatus(t){const v=$('vstatus');v.hidden=!t;v.textContent=t||''}
+function setMic(on){listening=on;$('micBtn').setAttribute('aria-pressed',on);$('micLbl').textContent=on?'Listening… tap to stop':'Start listening'}
+function pauseRec(){if(rec&&recRunning){try{rec.abort()}catch(e){}}}
+function resumeRec(){if(listening&&rec&&!recRunning){try{rec.start()}catch(e){}}}
+function startListen(){
+  if(!SR){vstatus('Voice input is not supported in this browser. Use Chrome or Edge, or type below.');return}
+  try{rec=new SR();rec.lang='en-IN';rec.interimResults=true;rec.continuous=true;
+    rec.onstart=()=>{recRunning=true};
+    rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i],tx=r[0].transcript.trim();$('heardTxt').textContent='“'+tx+'”';if(r.isFinal&&tx)handleUtterance(tx,'voice')}};
+    rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture'){
+        vstatus('The microphone is blocked on this page. Type below instead, or open the downloaded file in Chrome or Edge and allow the microphone.');log('Voice','Microphone unavailable ('+e.error+')');setMic(false)}};
+    rec.onend=()=>{recRunning=false;if(listening&&!speaking){setTimeout(()=>{if(listening&&!speaking&&!recRunning){try{rec.start()}catch(_){}}},150)}};
+    rec.start();setMic(true);vstatus('');log('Voice','Voice coach started listening')}catch(e){vstatus('Could not start the microphone. Type below instead.')}
+}
+function stopListen(){setMic(false);if(rec){try{rec.abort()}catch(e){}}log('Voice','Voice coach stopped listening')}
+$('micBtn').onclick=()=>{ac();listening?stopListen():startListen()};
+$('sayForm').addEventListener('submit',e=>{e.preventDefault();const v=$('sayInput').value.trim();if(!v)return;$('heardTxt').textContent='“'+v+'”';handleUtterance(v,'typed');$('sayInput').value=''});
+function reply(t,cls){const r=$('reply');r.textContent=t;r.className='reply'+(cls?' '+cls:'')}
+function norm(t){return ' '+t.toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()+' '}
+function matchStep(t){let best=-1,bs=0;STEPS.forEach((s,i)=>{let sc=0;s.kw.forEach(k=>{if(t.includes(' '+k+' ')||t.includes(' '+k+'s '))sc+=k.length});if(sc>bs){bs=sc;best=i}});return best}
+function handleUtterance(text,src){
+  const t=norm(text);if(t.trim().length<2)return;S.voiceCount++;T.voice=performance.now();
+  log('Voice',`Heard (${src}): “${text.trim()}”`);
+  if(/ (help|repeat|again|what next|next step|what do i do|what should i do|instruction|guide me) /.test(t)){reply('Reading the current step.');speakStep('Voice asked for');return}
+  if(/ (video|demo|show me|watch|play) /.test(t)){reply('Playing the clip for this step.');say('Here is the video for this step.');playChapter(S.done?N-1:S.step);return}
+  if(/ (restart|start again|reset) /.test(t)){reset('Restarted by voice command');return}
+  if(S.done){reply('The bag is already finished. Say “restart” to practise again.');say('The bag is already finished.');return}
+  if(S.standing||S.auto||S.autoHold){reply('Wait, the current action is still running.');return}
+  const cur=STEPS[S.step],m=matchStep(t);
+  if(m<0){reply(`No step recognised. You are on step ${S.step+1}: ${cur.title}.`);log('Voice','No step recognised');say(`I did not recognise a step. You are on step ${S.step+1}, ${cur.title}.`);return}
+  if(m===S.step){log('Voice',`Matched step ${m+1}: ${cur.title}, correct order`);reply(`Correct: step ${m+1}, ${cur.title}.`,'ok');say(`Correct. ${cur.title}.`);autoDo('voice');return}
+  if(m<S.step){log('Voice',`Matched step ${m+1}: ${STEPS[m].title}, already done`);reply(`“${STEPS[m].title}” is already done. Now: ${cur.title}.`);say(`${STEPS[m].title} is already done. Now, step ${S.step+1}: ${cur.title}.`);return}
+  reply(`Not yet. “${STEPS[m].title}” is step ${m+1}. First: ${cur.title}.`,'bad');
+  error(`Wrong order by voice: said step ${m+1} (${STEPS[m].title}) during step ${S.step+1}`,`Not yet. ${STEPS[m].title} is step ${m+1}. First, step ${S.step+1}: ${cur.title}. ${cur.guide}`);
+}
+
+/* ---------- 2D scene (top-down workbench on a canvas) ---------- */
+const stage=$('stage');
+const el=document.createElement('canvas');el.setAttribute('aria-label','Workbench, top view');stage.prepend(el);
+const ctx=el.getContext('2d');
+let W=1,H=1,DPR=1,BASE=120;const OY=.56;
+const view={cx:0,cz:.15,z:1};
+const VIEW={place:[0,.15,1],center:[-.1,.05,1.05],flapR:[.8,0,1.45],glue:[.85,0,1.55],foldL:[.15,0,1.1],creaseB:[.5,.55,1.45],diamond:[.53,.55,1.75],closeB:[.53,.55,1.75],
+  gusset:[.5,-.2,1.25],open:[.55,-.25,1.15],handles:[.6,-.55,1.3],done:[.6,-.45,1.15]};
+const SC=()=>BASE*view.z;
+function toScreen(x,z){const s=SC();return[(x-view.cx)*s+W/2,(z-view.cz)*s+H*OY]}
+function toWorld(px,py){const s=SC();return[(px-W/2)/s+view.cx,(py-H*OY)/s+view.cz]}
+function resize(){const r=stage.getBoundingClientRect();if(!r.width||!r.height)return;W=r.width;H=r.height;DPR=Math.min(devicePixelRatio||1,2);
+  el.width=Math.round(W*DPR);el.height=Math.round(H*DPR);BASE=Math.min(W/4.3,H/3.2)}
+new ResizeObserver(resize).observe(stage);
+
+/* textures */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function mk(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);return c}
+const woodC=mk(1024,640,(x,w,h)=>{x.fillStyle='#a8774a';x.fillRect(0,0,w,h);for(let i=0;i<180;i++){x.strokeStyle=`rgba(${rnd(60,110)|0},${rnd(35,60)|0},20,${rnd(.05,.18)})`;x.lineWidth=rnd(1,4);x.beginPath();const y=rnd(0,h);x.moveTo(0,y);for(let k=0;k<=8;k++)x.lineTo(k*w/8,y+Math.sin(k+i)*rnd(2,8));x.stroke()}});
+const MW=3.8,MD=2.5,PX=40;
+const matC=mk(MW*10*PX,MD*10*PX,(x,w,h)=>{x.fillStyle='#2c6a5c';x.fillRect(0,0,w,h);
+  for(let i=0;i<=MW*10;i++){x.strokeStyle=i%5?'rgba(220,245,235,.18)':'rgba(220,245,235,.42)';x.lineWidth=i%5?1:2;x.beginPath();x.moveTo(i*PX,0);x.lineTo(i*PX,h);x.stroke()}
+  for(let j=0;j<=MD*10;j++){x.strokeStyle=j%5?'rgba(220,245,235,.18)':'rgba(220,245,235,.42)';x.lineWidth=j%5?1:2;x.beginPath();x.moveTo(0,j*PX);x.lineTo(w,j*PX);x.stroke()}
+  x.fillStyle='rgba(230,250,240,.75)';x.font='600 16px sans-serif';for(let i=5;i<MW*10;i+=5)x.fillText(i,i*PX+4,18);x.font='600 18px sans-serif';x.fillText('SELF-HEALING MAT · cm',w-250,h-14)});
+const kraftC=mk(256,256,(x,w,h)=>{x.fillStyle='#c79a66';x.fillRect(0,0,w,h);
+  for(let i=0;i<w*h/30;i++){x.fillStyle=`rgba(${Math.random()<.5?'90,60,30':'240,215,170'},${rnd(.04,.12)})`;x.fillRect(rnd(0,w),rnd(0,h),rnd(1,2.5),rnd(1,2.5))}
+  for(let i=0;i<w*h/700;i++){x.strokeStyle='rgba(110,75,40,.13)';x.lineWidth=1;x.beginPath();const a=rnd(0,w),b=rnd(0,h);x.moveTo(a,b);x.lineTo(a+rnd(-14,14),b+rnd(-14,14));x.stroke()}});
+const kraft=ctx.createPattern(kraftC,'repeat');try{kraft.setTransform(new DOMMatrix().scale(1/300))}catch(e){}
+function mkPrint(){return mk(256,448,(x,w,h)=>{x.fillStyle='#12807a';x.fillRect(0,h*.07,w,h*.05);x.strokeStyle='#0e2c4a';x.lineWidth=5;x.beginPath();x.arc(w/2,h*.5,w*.19,0,Math.PI*2);x.stroke();
+  x.fillStyle='#0e2c4a';x.textAlign='center';x.textBaseline='middle';x.font=`700 ${w*.12|0}px Lexend, sans-serif`;x.fillText('REC',w/2,h*.5);
+  x.font=`600 ${w*.065|0}px "Source Sans 3", sans-serif`;x.fillText('VOCATIONAL LAB',w/2,h*.68);x.font=`500 ${w*.05|0}px "Source Sans 3", sans-serif`;x.fillText('handmade · kraft',w/2,h*.74)})}
+let printC=mkPrint();try{document.fonts.ready.then(()=>{printC=mkPrint()})}catch(e){}
+
+/* carry frame: the sheet is drawn in "flat-local" units (10 cm each), sheet centre at local x = -0.53 */
+const CF={x:.45,z:.6,yaw:.2,lift:0};
+function P(x,z){const s=1+CF.lift*.3,qx=(x+.53)*s,qz=z*s,c=Math.cos(CF.yaw),sn=Math.sin(CF.yaw);return[CF.x+qx*c-qz*sn,CF.z+qx*sn+qz*c]}
+
+/* drawing primitives (ctx is in world units) */
+let hits=[],hlParts=[],hlAmt=0;
+function path(w){ctx.beginPath();w.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath()}
+function piece(pts,part,o={}){
+  const w=pts.map(p=>P(p[0],p[1]));hits.push({w,part,proxy:!!o.proxy});if(o.proxy)return w;
+  const s=SC(),h=Math.max(0,o.h||0);
+  ctx.save();ctx.shadowColor=`rgba(45,28,10,${.2+Math.min(h,.6)*.35})`;ctx.shadowBlur=(2+h*45)*DPR;ctx.shadowOffsetX=h*.3*s*DPR;ctx.shadowOffsetY=(h*.4*s+1)*DPR;
+  path(w);ctx.fillStyle=o.fill||kraft;ctx.fill();ctx.restore();
+  if(o.shade){path(w);ctx.fillStyle=o.shade>0?`rgba(70,40,12,${Math.min(.6,o.shade)})`:`rgba(255,240,210,${-o.shade})`;ctx.fill()}
+  if(!o.noEdge){path(w);ctx.lineWidth=1.1/s;ctx.strokeStyle='rgba(90,58,28,.6)';ctx.stroke()}
+  if(hlAmt>0&&hlParts.includes(part)&&!o.noHl){path(w);ctx.fillStyle=`rgba(95,240,223,${hlAmt*.28})`;ctx.fill();ctx.lineWidth=2/s;ctx.strokeStyle=`rgba(95,240,223,${.35+hlAmt*.6})`;ctx.stroke()}
+  return w}
+/* a panel hinged on a line x = h (folding over the z axis); a,b are signed distances from the hinge */
+function xPanel(h,y0,th,a,b,z0,z1,part,o={}){
+  const c=Math.cos(th),s=Math.sin(th),xa=h+a*c,xb=h+b*c,ya=y0+a*s,yb=y0+b*s,zc=(z0+z1)/2,ka=1+Math.max(0,ya)*.14,kb=1+Math.max(0,yb)*.14;
+  return piece([[xa,zc+(z0-zc)*ka],[xb,zc+(z0-zc)*kb],[xb,zc+(z1-zc)*kb],[xa,zc+(z1-zc)*ka]],part,{...o,h:o.proxy?0:Math.max(ya,yb),shade:(o.shade||0)+(c<0?.13:0)+(1-Math.abs(c))*.14})}
+/* a panel hinged on a line z = h (folding over the x axis) */
+function zPanel(h,y0,th,a,b,x0,x1,part,o={}){
+  const c=Math.cos(th),s=Math.sin(th),za=h+a*c,zb=h+b*c,ya=y0+a*s,yb=y0+b*s,xc=(x0+x1)/2,ka=1+Math.max(0,ya)*.14,kb=1+Math.max(0,yb)*.14;
+  return piece([[xc+(x0-xc)*ka,za],[xc+(x1-xc)*ka,za],[xc+(x1-xc)*kb,zb],[xc+(x0-xc)*kb,zb]],part,{...o,h:o.proxy?0:Math.max(ya,yb),shade:(o.shade||0)+(c<0?.13:0)+(1-Math.abs(c))*.14})}
+function line(x0,z0,x1,z1,a,wpx){if(a<=.01)return;const p=P(x0,z0),q=P(x1,z1);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.lineWidth=(wpx||2)/SC();ctx.strokeStyle=`rgba(80,50,20,${a})`;ctx.stroke()}
+function crPts(pts,n){const out=[];for(let i=0;i<pts.length-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+  for(let k=0;k<n;k++){const t=k/n,t2=t*t,t3=t2*t;out.push([0,1].map(j=>.5*((2*p1[j])+(-p0[j]+p2[j])*t+(2*p0[j]-5*p1[j]+4*p2[j]-p3[j])*t2+(-p0[j]+3*p1[j]-3*p2[j]+p3[j])*t3)))}}
+  out.push(pts[pts.length-1]);return out}
+
+/* props */
+function bottle(tx,tz,ang,active){ctx.save();ctx.translate(tx,tz);ctx.rotate(ang);ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=(active?14:6)*DPR;ctx.shadowOffsetX=(active?10:3)*DPR;ctx.shadowOffsetY=(active?12:4)*DPR;
+  ctx.fillStyle='#9b2a5a';ctx.beginPath();ctx.roundRect?ctx.roundRect(-.09,-.46,.18,.32,.04):ctx.rect(-.09,-.46,.18,.32);ctx.fill();ctx.shadowColor='transparent';
+  ctx.fillStyle='#b7d83a';ctx.fillRect(-.09,-.2,.18,.06);ctx.fillStyle='#dddddd';ctx.beginPath();ctx.moveTo(-.05,-.14);ctx.lineTo(.05,-.14);ctx.lineTo(0,0);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(-.06,-.44,.03,.22);ctx.restore()}
+function punchProp(tx,tz,ang,press,active){ctx.save();ctx.translate(tx,tz);ctx.rotate(ang);ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=(active?12:6)*DPR;ctx.shadowOffsetX=(active?8:3)*DPR;ctx.shadowOffsetY=(active?10:4)*DPR;
+  ctx.fillStyle='#2b4fa8';ctx.fillRect(-.06,-.14,.52,.28);ctx.shadowColor='transparent';ctx.fillStyle='#3b63c4';const k=1-press*.25;ctx.fillRect(-.02,-.1*k,.5,.2*k);
+  ctx.fillStyle='#c8ccd4';ctx.beginPath();ctx.arc(0,0,.045,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1b2f66';ctx.beginPath();ctx.arc(0,0,.02,0,Math.PI*2);ctx.fill();ctx.restore()}
+function coil(x,z){ctx.save();ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=5*DPR;ctx.shadowOffsetY=3*DPR;ctx.strokeStyle='#1d1a17';ctx.lineWidth=.04;
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(x+i*.012,z-i*.01,.15-i*.02,.12-i*.015,.3,0,Math.PI*2);ctx.stroke()}ctx.restore()}
+function handGlyph(x,z,h,grip){ctx.save();ctx.translate(x,z);ctx.rotate(-.45);const sh=.08+h*.6;ctx.globalAlpha=grip?.75:.55;
+  ctx.shadowColor='rgba(10,30,50,.25)';ctx.shadowBlur=8*DPR;ctx.shadowOffsetX=sh*SC()*.4*DPR;ctx.shadowOffsetY=sh*SC()*.5*DPR;
+  ctx.fillStyle='#e3f1fb';ctx.strokeStyle='#7cc4f2';ctx.lineWidth=1.5/SC();
+  const fl=grip?.16:.22;ctx.beginPath();ctx.roundRect?ctx.roundRect(-.035,0,.07,fl+.06,.035):ctx.rect(-.035,0,.07,fl+.06);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(.07,fl+.13,.13,.12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  [.06,.12,.17].forEach((dx,i)=>{ctx.beginPath();ctx.ellipse(dx+.01,fl+.05+i*.012,.03,.06,0,0,Math.PI*2);ctx.fill();ctx.stroke()});
+  ctx.beginPath();ctx.ellipse(-.07,fl+.16,.035,.08,-.7,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.roundRect?ctx.roundRect(.0,fl+.2,.16,.18,.05):ctx.rect(0,fl+.2,.16,.18);ctx.fill();ctx.stroke();
+  ctx.restore()}
+
+/* view tween */
+let camTw={t:1};
+function frame(key){const c=VIEW[key]||VIEW.place;camTw={f:[view.cx,view.cz,view.z],to:c,t:0}}
+$('btnCenter').onclick=()=>frame(S.done?'done':STEPS[S.step].key);
+function zoomBy(f,px,py){if(px==null){px=W/2;py=H*OY}const b=toWorld(px,py);view.z=Math.min(3.2,Math.max(.55,view.z*f));const a=toWorld(px,py);view.cx+=b[0]-a[0];view.cz+=b[1]-a[1];camTw.t=1;T.headset=performance.now()}
+$('btnZoomIn').onclick=()=>zoomBy(1.2);$('btnZoomOut').onclick=()=>zoomBy(1/1.2);
+el.addEventListener('wheel',e=>{e.preventDefault();const r=el.getBoundingClientRect();zoomBy(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+
+/* sound effects */
+let AC=null,soundOn=true,rustle=null,rustling=false;
+function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,type,v,delay){const a=AC;if(!a||!soundOn)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+(delay||0);o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v||.1,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const sfx={pick:()=>tone(660,.12,'triangle',.1),ok:()=>{tone(660,.14,'sine',.09);tone(990,.2,'sine',.08,.1)},err:()=>tone(170,.25,'square',.05),done:()=>[523,659,784,1046].forEach((f,i)=>tone(f,.35,'sine',.08,i*.12)),punch:()=>tone(120,.08,'square',.08)};
+function setRustle(on){if(!AC)return;if(!rustle){const len=AC.sampleRate,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const src=AC.createBufferSource();src.buffer=buf;src.loop=true;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=2600;f.Q.value=.7;rustle=AC.createGain();rustle.gain.value=0;src.connect(f);f.connect(rustle);rustle.connect(AC.destination);src.start()}
+  rustle.gain.setTargetAtTime(on&&soundOn?.04:0,AC.currentTime,.05)}
+$('btnSound').onclick=()=>{soundOn=!soundOn;$('btnSound').setAttribute('aria-pressed',soundOn);$('btnSound').title=soundOn?'Sound on':'Sound off';$('sndOff').hidden=soundOn;ac();if(!soundOn)setRustle(false)};
+
+/* ---------- interaction ---------- */
+const SNAP=.35;let downXY=null,lastPt=[0,0],pointerDownCam=false,panLast=null,handVis=false;const handT={x:0,z:.4,h:.2};
+function curKey(){return S&&!S.done&&STEPS[S.step]?STEPS[S.step].key:null}
+function setPt(e){const r=el.getBoundingClientRect();lastPt=[e.clientX-r.left,e.clientY-r.top]}
+function inPoly(x,z,w){let c=false;for(let i=0,j=w.length-1;i<w.length;j=i++){const [xi,zi]=w[i],[xj,zj]=w[j];if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)c=!c}return c}
+function validFor(key,hit){return !!(hit&&key&&STEPS[S.step].parts.includes(hit.part))}
+function hitAt(){const [x,z]=toWorld(lastPt[0],lastPt[1]),key=curKey(),parts=key?STEPS[S.step].parts:[];let first=null;
+  for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(h.proxy&&!parts.includes(h.part))continue;if(!inPoly(x,z,h.w))continue;if(validFor(key,h))return h;if(!first&&!h.proxy)first=h}
+  return first}
+const nameOf={half:'the right half of the sheet',sheet:'the left part of the sheet',flapR:'the narrow glue flap',flapL:'the wide left panel',glue:'the glue strip',tube:'the middle of the bag',side:'a side edge',bottom:'the bottom strip',diamond:'the diamond',bag:'the bag'};
+function missMsg(key,hit){const st=STEPS[S.step];return `That is ${nameOf[hit.part]||'the wrong part'}. For “${st.title}”, use ${nameOf[st.parts[0]]}.`}
+function busy(){return S.done||S.auto||S.autoHold||S.standing}
+function startHold(){S.holding=true}
+function stopHold(){S.holding=false}
+function autoDo(via){const key=curKey();if(!key||busy())return;S.via=via;ac();const st=STEPS[S.step];
+  if(st.dur){S.autoHold=true;return}
+  if(key==='place'){S.auto=true;S.lift=.18;S.carry={x:0,z:0};S.yaw=0;sfx.pick();setTimeout(()=>{S.auto=false;S.lift=0;S.prog=1;completeStep()},800)}}
+function startPan(e){pointerDownCam=true;panLast=[e.clientX,e.clientY];camTw.t=1;try{el.setPointerCapture(e.pointerId)}catch(_){}}
+el.addEventListener('pointerdown',e=>{
+  if(e.button!==0&&e.pointerType==='mouse')return;
+  ac();setPt(e);downXY=[e.clientX,e.clientY];T.finger=performance.now();pointerDownCam=false;
+  const key=curKey();if(!key||busy()){startPan(e);return}
+  const st=STEPS[S.step],hit=hitAt(),ok=validFor(key,hit);
+  if(key==='place'&&ok){S.dragging=true;S.lift=.18;sfx.pick();const [wx,wz]=toWorld(lastPt[0],lastPt[1]);S.dragOff={x:wx-S.carry.x,z:wz-S.carry.z};el.setPointerCapture(e.pointerId);return}
+  if(st.dur&&ok){S.via='touch';startHold();S.ptrHold=true;el.setPointerCapture(e.pointerId);return}
+  if(hit&&!ok){error(missMsg(key,hit));return}
+  startPan(e);
+});
+el.addEventListener('pointermove',e=>{
+  setPt(e);T.finger=performance.now();handVis=true;
+  if(pointerDownCam&&panLast&&e.buttons){const s=SC();view.cx-=(e.clientX-panLast[0])/s;view.cz-=(e.clientY-panLast[1])/s;panLast=[e.clientX,e.clientY];T.headset=performance.now()}
+  const key=curKey(),hit=hitAt();S.hover=validFor(key,hit);
+  const [wx,wz]=toWorld(lastPt[0],lastPt[1]);handT.x=wx;handT.z=wz;
+  if(S.dragging){const rx=Math.min(1.8,Math.max(-1.8,wx-S.dragOff.x)),rz=Math.min(1.4,Math.max(-1.2,wz-S.dragOff.z)),d=Math.hypot(rx,rz);
+    const was=S.near;S.near=d<SNAP;if(S.near&&!was)tone(880,.08,'triangle',.06);
+    S.carry={x:S.near?rx*.25:rx,z:S.near?rz*.25:rz};S.yaw=S.near?0:.2*Math.min(1,d);S.prog=S.near?1:Math.max(0,1-d/1.4)}
+  el.style.cursor=S.dragging?'grabbing':pointerDownCam&&e.buttons?'move':S.hover?(key==='place'?'grab':'pointer'):'default';
+});
+el.addEventListener('pointerleave',()=>{if(!S.dragging&&!S.holding)handVis=false});
+function endPointer(e){
+  const moved=downXY?Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1]):99;
+  if(S.dragging){S.dragging=false;
+    if(S.near){S.carry={x:0,z:0};S.yaw=0;S.lift=0;S.prog=1;S.near=false;S.via='touch';completeStep()}
+    else{S.lift=0;const d=Math.hypot(S.carry.x,S.carry.z);error(`The sheet is ${(d*10).toFixed(1)} cm away from the guide. Drag it until the outline turns green.`)}}
+  else if(S.ptrHold){S.ptrHold=false;stopHold()}
+  else if(pointerDownCam&&moved<6&&curKey()&&!busy())toast(`Tip: ${STEPS[S.step].mark.toLowerCase()} at the glowing ring, use the button below, or say “${STEPS[S.step].title.toLowerCase()}”.`,true);
+  pointerDownCam=false;panLast=null;downXY=null;
+}
+el.addEventListener('pointerup',endPointer);el.addEventListener('pointercancel',endPointer);
+
+/* action button + keyboard */
+const actBtn=$('actBtn');
+function actStart(){ac();if(S.done){openReview();return}const key=curKey();if(!key||busy())return;
+  const st=STEPS[S.step];if(st.dur){S.via='button';startHold();S.btnHold=true;return}autoDo('button')}
+function actEnd(){if(S.btnHold){S.btnHold=false;stopHold()}}
+actBtn.addEventListener('pointerdown',e=>{e.preventDefault();try{actBtn.setPointerCapture(e.pointerId)}catch(_){}actStart()});
+actBtn.addEventListener('pointerup',actEnd);actBtn.addEventListener('pointercancel',actEnd);actBtn.addEventListener('lostpointercapture',actEnd);
+actBtn.addEventListener('keydown',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat||!$('modal').hidden||!$('logModal').hidden)return;const t=e.target;
+  if(['SELECT','INPUT','TEXTAREA','VIDEO','BUTTON'].includes(t.tagName)&&t!==actBtn)return;if(document.querySelector('[data-panel="sessions"]').hidden)return;e.preventDefault();actStart()});
+document.addEventListener('keyup',e=>{if(e.code==='Space')actEnd()});
+function refreshAct(){$('actLbl').textContent=S.done?'Review session':ACT();actBtn.disabled=false}
+function ACT(){return STEPS[S.step].act}
+
+/* ---------- loop ---------- */
+let lastT=performance.now();
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,clamp=t=>Math.min(1,Math.max(0,t)),lerp=(a,b,t)=>a+(b-a)*t,seg=(t,a,b)=>clamp((t-a)/(b-a));
+const there=t=>t<.55?ease(t/.55):1-ease((t-.55)/.45); /* fold then unfold, leaves a crease */
+const chips={headset:$('chip-headset'),finger:$('chip-finger'),pressure:$('chip-pressure'),touch:$('chip-touch'),voice:$('chip-voice')};
+T.voice=0;
+function chip(k,on){const c=chips[k];if(c.classList.contains('active')!==on){c.classList.toggle('active',on);c.textContent=on?'Active':'Simulated'}}
+const marker=$('marker'),markLbl=$('markLbl'),pring=$('pring'),actFill=$('actFill');
+let lastSec=-1,lastPunch=0,glueAnim=0;const G={h2:.6,th2:0,bagTop:-.9};
+
+function drawScene(now,working){
+  const s=SC();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,el.width,el.height);
+  ctx.setTransform(DPR*s,0,0,DPR*s,DPR*(W/2-view.cx*s),DPR*(H*OY-view.cz*s));
+  hits=[];const key=curKey(),pulse=.5+.5*Math.sin(now/260);
+  hlParts=key?STEPS[S.step].parts:[];hlAmt=!key?0:(S.hover||working||S.dragging)?.9:pulse*.6;
+  /* table + mat */
+  ctx.save();ctx.shadowColor='rgba(10,25,40,.35)';ctx.shadowBlur=24*DPR;ctx.shadowOffsetY=10*DPR;ctx.drawImage(woodC,-2.8,-1.8,5.6,3.6);ctx.restore();
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=6*DPR;ctx.shadowOffsetY=2*DPR;ctx.drawImage(matC,-1.9,-1.25,3.8,2.5);ctx.restore();
+  /* guide outline */
+  if(S.step===0){const col=S.near?'#7dff9b':'#5ff0df',a=S.near?1:.55+.45*pulse;ctx.save();ctx.globalAlpha=a;ctx.strokeStyle=col;ctx.lineWidth=2/s;ctx.setLineDash([.08,.05]);ctx.strokeRect(-1.27,-1,2.54,2);ctx.setLineDash([]);
+    ctx.lineWidth=4/s;[[-1.27,-1,1,1],[1.27,-1,-1,1],[1.27,1,-1,-1],[-1.27,1,1,-1]].forEach(([x,z,sx,sz])=>{ctx.beginPath();ctx.moveTo(x+sx*.22,z);ctx.lineTo(x,z);ctx.lineTo(x,z+sz*.22);ctx.stroke()});ctx.restore()}
+  /* pose values */
+  const cf=there(V('center')),th1=cf*Math.PI*.985,h1=-.53,c1=Math.cos(th1),s1=Math.sin(th1);
+  const h2=h1+1.13*c1,y2=1.13*s1,th2=th1+ease(V('flapR'))*Math.PI;G.h2=h2;G.th2=th2;
+  const thL=-ease(V('foldL'))*Math.PI,tubeOn=S.step>IDX('foldL');
+  const dT=ease(V('diamond')),cb=V('closeB'),gs=there(V('gusset'));
+  const op=V('open'),oa=ease(seg(op,0,.68)),ob=seg(op,.7,1),hv=V('handles');
+  const bagOn=oa>=.03||S.step>IDX('open');
+  /* resting props */
+  const gk=key==='glue'&&working?1:key==='closeB'&&working&&cb<.3?2:0;
+  if(!gk)bottle(2.2,-1.42,.55,false);
+  const punching=ob>0&&ob<1;if(!punching)punchProp(-2.3,-1.2,-.2,0,false);
+  if(hv<.98)coil(2.2,1.25);
+  /* carry lift shadow */
+  if(!tubeOn&&CF.lift>.005){const w=[[-1.8,-1],[.74,-1],[.74,1],[-1.8,1]].map(p=>P(p[0],p[1]));ctx.save();ctx.translate(CF.lift*.6,CF.lift*.8);path(w);ctx.fillStyle=`rgba(10,30,25,${.12+CF.lift})`;ctx.filter='blur(6px)';ctx.fill();ctx.restore()}
+  if(!tubeOn){
+    /* phase A: flat sheet */
+    const drawL=()=>xPanel(-.6,0,thL,-1.2,0,-1,1,'flapL',{h:0});
+    piece([[-.6,-1],[-.53,-1],[-.53,1],[-.6,1]],'sheet');
+    if(V('foldL')<=0)drawL();
+    line(-.53,-1,-.53,1,V('center')*.55,2);
+    xPanel(h1,0,th1,0,1.13,-1,1,'half');
+    xPanel(h2,y2,th2,0,.14,-1,1,'flapR',{shade:.06});
+    xPanel(h2,y2,th2,-.3,.34,-1.05,1.05,'flapR',{proxy:1});
+    if(V('glue')>0)xPanel(h2,y2+.002,th2,.025,.115,-.96,.96,'glue',{fill:`rgba(250,246,232,${V('glue')*.92})`,noEdge:1,shade:-.01});
+    if(V('foldL')>0)drawL();
+  }else if(!bagOn){
+    /* phase B: flat tube */
+    piece([[-.4,-1],[.4,-1],[.4,.55],[-.4,.55]],'tube');line(.32,-1,.32,.55,.5,3);
+    xPanel(-.4,0,-gs*Math.PI*.95,-.2,0,-1,.55,'side');xPanel(-.4,0,-gs*Math.PI*.95,-.4,.05,-1,.55,'side',{proxy:1});
+    xPanel(.4,0,gs*Math.PI*.95,0,.2,-1,.55,'side');xPanel(.4,0,gs*Math.PI*.95,-.05,.4,-1,.55,'side',{proxy:1});
+    line(-.4,-1,-.4,.55,V('gusset')*.55,2);line(.4,-1,.4,.55,V('gusset')*.55,2);
+    if(dT<.98){zPanel(.55,0,-there(V('creaseB'))*Math.PI*.96,0,.45*(1-dT),-.6,.6,'bottom');zPanel(.55,0,0,-.05,.7,-.75,.75,'bottom',{proxy:1})}
+    line(-.6,.55,.6,.55,V('creaseB')*.6,2);
+    if(dT>0){const sx=lerp(.6,1,dT),D=(x,z)=>[x*sx,.55+z*dT];
+      piece([[-.6,0],[-.45,-.15],[.45,-.15],[.6,0],[.45,.15],[-.45,.15]].map(p=>D(p[0],p[1])),'diamond',{shade:.1});
+      piece([[-.8,-.45],[.8,-.45],[.8,.45],[-.8,.45]].map(p=>D(p[0],p[1])),'diamond',{proxy:1});
+      const ga=seg(cb,0,.3)*.9*(1-.8*seg(cb,.62,1));if(ga>0)piece([[-.3,-.11],[.3,-.11],[.3,.11],[-.3,.11]].map(p=>D(p[0],p[1])),'diamond',{fill:`rgba(250,246,232,${ga})`,noEdge:1,noHl:1});
+      const flap=(hz,phi,sign)=>{const c=Math.cos(phi),sn=Math.sin(phi),pts=[[-.45,0],[-.3,sign*.15],[.3,sign*.15],[.45,0]].map(([x,d])=>{const hh=Math.abs(d)*sn,k=1+hh*.14;return D(x*k,hz+d*c)});
+        piece(pts,'diamond',{h:.15*sn,shade:.04+(c<0?.13:0)+(1-Math.abs(c))*.12})};
+      flap(-.15,ease(seg(cb,.3,.62))*Math.PI,-1);flap(.15,ease(seg(cb,.66,1))*Math.PI,1)}
+  }else{
+    /* phase C: the bag standing up, front view with oblique depth */
+    const fw=lerp(1.2,.8,oa),fh=lerp(1.55,1.4,oa),zb=lerp(.55,.5,oa),zt=zb-fh,dx=.24*oa,dz=-.2*oa,x0=-fw/2,x1=fw/2;G.bagTop=zt;
+    const bump=Math.sin(Math.PI*oa)*.35,pr=0;
+    piece([[x0+dx,zt+dz],[x1+dx,zt+dz],[x1+dx,zb+dz],[x0+dx,zb+dz]],'bag',{h:bump,shade:.16});
+    piece([[x0,zt],[x1,zt],[x1+dx,zt+dz],[x0+dx,zt+dz]],'bag',{fill:'#4a3018',noHl:1});
+    const hole=(x,z,light)=>{const p=P(x,z);ctx.beginPath();ctx.arc(p[0],p[1],.04,0,Math.PI*2);ctx.fillStyle=light?'#e9c99a':'#2a1e14';ctx.fill();ctx.lineWidth=1.5/s;ctx.strokeStyle='#2a1e14';ctx.stroke()};
+    const cordPts=(ox,oz)=>crPts([[-.2,zt+.13],[-.24,zt-.08],[-.12,zt-.3],[.12,zt-.3],[.24,zt-.08],[.2,zt+.13]].map(([x,z])=>[x+ox,z+oz]),12);
+    const drawCord=(i,ox,oz)=>{const t=clamp(hv*2-i);if(t<=0)return;const pts=cordPts(ox,oz),n=Math.max(2,Math.round(pts.length*t));
+      ctx.save();ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=4*DPR;ctx.shadowOffsetY=3*DPR;ctx.beginPath();pts.slice(0,n).forEach((p,k)=>{const q=P(p[0],p[1]);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])});
+      ctx.lineWidth=.034;ctx.lineCap='round';ctx.strokeStyle='#1d1a17';ctx.stroke();ctx.restore();
+      [[-.2,0],[.2,pts.length-1]].forEach(([x,idx],j)=>{if(t>=1||(j===0&&t>.02)){const q=P(x+ox,zt+.13+oz);ctx.beginPath();ctx.arc(q[0],q[1],.036,0,Math.PI*2);ctx.fillStyle='#1d1a17';ctx.fill()}})};
+    if(ob>.8){hole(-.2+dx,zt+dz+.13,true);hole(.2+dx,zt+dz+.13,true)}
+    drawCord(1,dx,dz);
+    const side=piece([[x1,zt],[x1+dx,zt+dz],[x1+dx,zb+dz],[x1,zb]],'bag',{shade:.24,noHl:1});
+    if(dx>.02){line(x1+dx/2,zt+dz/2,x1+dx/2,zb-fh*.12+dz/2,.35,1.5);line(x1+dx/2,zb-fh*.12+dz/2,x1,zb,.35,1.5);line(x1+dx/2,zb-fh*.12+dz/2,x1+dx,zb+dz,.35,1.5)}
+    const fr=piece([[x0,zt],[x1,zt],[x1,zb],[x0,zb]],'bag',{h:bump*.6,noHl:1});
+    if(oa>.2){const tl=P(x0,zt),br=P(x1,zb);ctx.save();ctx.globalAlpha=seg(oa,.2,1);ctx.drawImage(printC,tl[0],tl[1],br[0]-tl[0],br[1]-tl[1]);ctx.restore();
+      if(hlAmt>0&&hlParts.includes('bag')){path(fr);ctx.fillStyle=`rgba(95,240,223,${hlAmt*.12})`;ctx.fill();ctx.lineWidth=2/s;ctx.strokeStyle=`rgba(95,240,223,${.35+hlAmt*.6})`;ctx.stroke()}}
+    if(ob>.35){hole(-.2,zt+.13);hole(.2,zt+.13)}
+    drawCord(0,0,0);
+    piece([[x0-.2,zt-.45],[x1+.35,zt-.45],[x1+.35,zb+.1],[x0-.2,zb+.1]],'bag',{proxy:1});
+    if(punching){const pp=P(.2,zt+.13),pr2=Math.abs(Math.sin(ob*Math.PI*4));punchProp(pp[0],pp[1],-.15,pr2,true);
+      if(now-lastPunch>350&&pr2>.95){sfx.punch();lastPunch=now}}
+  }
+  /* active glue bottle */
+  if(gk){glueAnim+=1/60;const p=gk===1?P(h2+.07*Math.cos(th2),lerp(-.85,.85,(Math.sin(glueAnim*2.4)+1)/2)):P(0,.55);bottle(p[0],p[1],gk===1?.7:.5,true)}
+  /* ghost hand */
+  if(handVis||S.autoHold){const grip=working||S.dragging||S.auto;handGlyph(handT.x,handT.z,grip?.05:.18,grip)}
+}
+
+function anchorLocal(key){switch(key){
+  case'place':return[-.53,0];case'center':return[.32,.2];case'flapR':return[.67,0];case'glue':return[G.h2+.07*Math.cos(G.th2),0];
+  case'foldL':return[-1.2,0];case'creaseB':return[0,.77];case'diamond':return[0,.65];case'closeB':return[0,.55];case'gusset':return[.5,-.3];
+  case'open':return[0,-.25];case'handles':return[0,G.bagTop-.12]}return[0,0]}
+
+function tick(){
+  const now=performance.now(),dt=Math.min((now-lastT)/1000,.1);lastT=now;let key=curKey();
+  if(key){const st=STEPS[S.step];
+    if((S.holding||S.autoHold)&&st.dur){S.prog=Math.min(1,S.prog+dt/st.dur);S.vals[key]=S.prog;
+      if(S.prog>=1){S.holding=false;S.ptrHold=false;S.btnHold=false;S.autoHold=false;completeStep()}}
+    const b=$('sb'+S.step);if(b)b.style.width=S.prog*100+'%'}
+  key=curKey();
+  const working=!!(S.holding||S.autoHold);
+  const holdP=key&&STEPS[S.step].dur?S.prog:0;
+  $('gHoldBar').style.width=holdP*100+'%';actFill.style.width=(working?holdP*100:0)+'%';
+  if(AC&&rustling!==working){rustling=working;setRustle(working)}
+  /* carry (drag) */
+  const k=1-Math.exp(-dt*14);CF.x=lerp(CF.x,S.carry.x,k);CF.z=lerp(CF.z,S.carry.z,k);CF.lift=lerp(CF.lift,S.lift,k);CF.yaw=lerp(CF.yaw,S.yaw,1-Math.exp(-dt*6));
+  /* view tween */
+  if(camTw.t<1){camTw.t=Math.min(1,camTw.t+dt/1.1);const e=ease(camTw.t);view.cx=lerp(camTw.f[0],camTw.to[0],e);view.cz=lerp(camTw.f[1],camTw.to[1],e);view.z=lerp(camTw.f[2],camTw.to[2],e)}
+  if(S.autoHold&&key){const a=P(...anchorLocal(key));handT.x=lerp(handT.x,a[0],1-Math.exp(-dt*12));handT.z=lerp(handT.z,a[1],1-Math.exp(-dt*12))}
+  drawScene(now,working);
+  /* marker */
+  if(key&&!working&&!S.dragging&&!S.auto){const a=P(...anchorLocal(key)),[mx,my]=toScreen(a[0],a[1]);
+    if(mx>-20&&mx<W+20&&my>-20&&my<H+20){marker.hidden=false;marker.style.left=mx+'px';marker.style.top=my+'px';markLbl.textContent=STEPS[S.step].mark}else marker.hidden=true}
+  else marker.hidden=true;
+  if(S.holding&&S.ptrHold){pring.hidden=false;pring.style.left=lastPt[0]+'px';pring.style.top=lastPt[1]+'px';pring.style.setProperty('--p',holdP)}else pring.hidden=true;
+  /* chips + clock */
+  chip('headset',now-T.headset<500);chip('finger',now-T.finger<350);chip('pressure',working);chip('touch',now-T.touch<700);chip('voice',listening||now-T.voice<1500);
+  const sec=Math.floor(((S.done?S.end:now)-S.start)/1000);if(sec!==lastSec){lastSec=sec;$('elapsed').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+  requestAnimationFrame(tick);
+}
+
+function reset(reason){
+  S=freshState();$('logBody').innerHTML='';$('errCount').textContent='0';$('gHoldBar').style.width='0%';
+  CF.x=S.carry.x;CF.z=S.carry.z;CF.yaw=S.yaw;CF.lift=0;
+  if(reason)log('System',reason);
+  log('System',`Session started (simulation mode) · ${learner}`);guidance();refreshSteps();frame('place');
+  reply('Waiting for a step name.');$('heardTxt').textContent='Nothing yet';
+}
+renderStatic();renderAttempts();reset();resize();tick();
+})();
+</script>
+</body>
+</html>
