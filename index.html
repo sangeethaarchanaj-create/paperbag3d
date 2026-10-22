@@ -74,7 +74,7 @@ main{padding-block:22px 32px;padding-left:22px;padding-right:max(16px,env(safe-a
 .hold{height:6px;border-radius:4px;background:var(--surface-2);overflow:hidden}
 .hold i{display:block;height:100%;width:0;background:var(--teal);transition:width .08s linear}
 .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:var(--teal-soft);color:var(--teal-soft-ink)}
-.toast{position:absolute;left:50%;bottom:84px;transform:translate(-50%,20px);background:var(--bad-soft);color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 30%,transparent);padding:9px 14px;border-radius:8px;font-weight:600;font-size:.9rem;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast{position:absolute;left:50%;bottom:150px;transform:translate(-50%,20px);background:var(--bad-soft);color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 30%,transparent);padding:9px 14px;border-radius:8px;font-weight:600;font-size:.9rem;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .toast.good{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
 .guide small{font-size:.78rem;color:var(--muted)}
@@ -283,6 +283,40 @@ body.vr .mk input{width:72px;padding:10px}
 .rub-actions{display:flex;flex-wrap:wrap;gap:10px;padding:0 18px 18px}
 .rub-actions .btn{padding:10px 14px;flex:0 0 auto}
 @media print{body *{visibility:hidden!important}#rubPrint,#rubPrint *{visibility:visible!important}#rubPrint{position:absolute;left:0;top:0;width:100%}.rub-actions,.no-print{display:none!important}.mk input{border:none;background:none}}
+
+#btnPace{width:auto;min-width:40px;padding:0 8px;font:700 .72rem/1 var(--f-display);letter-spacing:.02em}#btnPace span{white-space:nowrap}
+#btnFollow[aria-pressed="true"]{background:var(--teal);color:var(--teal-ink)}
+/* action caption shown while the hands work */
+.phase{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:#0e2c4a;color:#fff;padding:12px 22px 12px 12px;border-radius:999px;font:600 1.35rem/1.2 var(--f-display);box-shadow:0 8px 26px rgba(4,20,34,.35);pointer-events:none;white-space:nowrap;z-index:5}
+.phase b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#5ff0df;color:#0e2c4a;font-size:1.05rem}
+.phase.pop{animation:phpop .45s ease-out}@keyframes phpop{0%{transform:translateX(-50%) scale(.85);opacity:.3}100%{transform:translateX(-50%) scale(1);opacity:1}}
+body.vr .phase{font-size:1.6rem}
+@media (max-width:640px){.phase{font-size:1.05rem;white-space:normal;max-width:92%}}
+/* ---- v10: instructions bar above a full-size workbench ---- */
+.simmain{display:flex;flex-direction:column;gap:12px;min-width:0;height:clamp(680px,calc(100vh - 24px),1240px)}
+@media (max-width:860px){.simmain{height:auto}.simmain .stage{height:clamp(460px,72vh,720px)!important;flex:none}}
+.simmain .stage{flex:1 1 auto;height:auto!important;min-height:420px}
+.simmain .guide{position:static;max-width:none;inset:auto;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:22px;row-gap:6px;align-items:start;pointer-events:auto;background:var(--surface);padding:14px 18px;flex:0 0 auto}
+.simmain .guide>*{grid-column:1}
+.simmain .guide .hands{grid-column:2;grid-row:1 / span 3;margin:0;padding:0 0 0 18px;border-top:0;border-left:1px dashed var(--line);font-size:.95rem;gap:8px;align-self:stretch;align-content:center}
+.simmain .guide .hold{grid-column:1 / -1}
+.simmain .guide h3{font-size:1.25rem}.simmain .guide p{font-size:1rem}
+@media (max-width:860px){.simmain .guide{grid-template-columns:minmax(0,1fr)}.simmain .guide .hands{grid-column:1;grid-row:auto;border-left:0;border-top:1px dashed var(--line);padding:8px 0 0}}
+.simmain.focus{position:fixed;inset:0;z-index:1000;height:auto;padding:10px;background:var(--bg)}
+/* ---- v3: large workbench, focus mode, hand legend ---- */
+@media (min-width:1181px){.sim{grid-template-columns:minmax(0,1fr) 300px}}
+@media (max-width:1180px){.sim{grid-template-columns:minmax(0,1fr)}}
+.stage{height:clamp(600px,calc(100vh - 140px),1100px)}
+@media (max-width:1180px){.stage{height:clamp(540px,82vh,960px)}}
+@media (max-width:860px){.stage{height:clamp(480px,78vh,760px)}}
+.stage.focus{position:fixed;inset:0;height:auto!important;z-index:1000;border-radius:0;border:0}
+body.stage-focus{overflow:hidden}
+.guide{max-width:440px}
+.hands{display:grid;gap:4px;margin-top:2px;padding-top:7px;border-top:1px dashed var(--line);font-size:.86rem;color:var(--ink)}
+.hands div{display:grid;grid-template-columns:26px minmax(0,1fr);gap:7px;align-items:start;line-height:1.3}
+.hands b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;color:#fff;font-size:.72rem;font-family:var(--f-display)}
+.hands .hl b{background:#c96f1c}.hands .hr b{background:#2a74b8}
+body.vr .hands{font-size:1rem}
 </style>
 </head>
 <body>
@@ -313,24 +347,31 @@ body.vr .mk input{width:72px;padding:10px}
     <!-- SESSIONS -->
     <section data-panel="sessions" style="display:flex;flex-direction:column;gap:18px">
       <div class="sim">
-        <div class="stage" id="stage">
-          <div class="guide" id="guide">
+        <div class="simmain" id="simmain">
+        <div class="guide" id="guide">
             <div class="guide-top"><span id="gStep">Step 1 of 11</span><span class="tag" id="gType">Position</span></div>
             <h3 id="gTitle">Place the sheet</h3>
             <p id="gText"></p>
+            <div class="hands" id="gHands"><div class="hl"><b>L</b><span id="gHandL"></span></div><div class="hr"><b>R</b><span id="gHandR"></span></div></div>
             <div class="hold" id="gHold" hidden><i id="gHoldBar"></i></div>
             <div class="gbtns"><button class="gbtn" id="gWatch"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Watch this step</button><button class="gbtn" id="gSpeak"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4z"/></svg>Read aloud</button></div>
           </div>
+        <div class="stage" id="stage">
+          <div class="phase" id="phase" hidden><b id="phaseNum"></b><span id="phaseTxt"></span></div>
           <div class="toast" id="toast"></div>
           <div class="marker" id="marker" hidden><span class="ring"></span><span class="dot"></span><span class="lbl" id="markLbl"></span></div>
           <div class="pring" id="pring" hidden></div>
           <div class="tools">
+            <button class="tool" id="btnFocus" title="Full screen workbench" aria-label="Full screen workbench" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+            <button class="tool pace" id="btnPace" title="Speed" aria-label="Change speed"><span id="paceLbl">Slow</span></button>
+            <button class="tool" id="btnFollow" title="Close-up: camera follows the hands" aria-label="Camera follows the hands" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.2-4.2M11 8.5v5M8.5 11h5"/></svg></button>
             <button class="tool" id="btnCenter" title="Recenter view" aria-label="Recenter view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
             <button class="tool" id="btnZoomIn" title="Zoom in" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
             <button class="tool" id="btnZoomOut" title="Zoom out" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
             <button class="tool" id="btnSound" title="Sound on" aria-label="Toggle sound effects" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><span class="x" id="sndOff" hidden><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4"><path d="M4 4l16 16"/></svg></span></button>
           </div>
           <div class="actionbar"><button class="act" id="actBtn"><i id="actFill"></i><span id="actLbl">Slide onto guide</span><kbd>Space</kbd></button></div>
+        </div>
         </div>
         <div class="side">
           <div class="card panel">
@@ -500,6 +541,9 @@ const vrText=t=>!vrMode?t:t.replace(/Press and hold on /g,'Click ').replace(/^Ho
 function applyMode(){document.body.classList.toggle('vr',vrMode);
   const b=$('modeBtn');if(b){b.textContent=vrMode?'One-click (VR)':'Hold & drag (desktop)';b.setAttribute('aria-pressed',vrMode)}}
 /* ---------- the 10 steps, timed against the reference video ---------- */
+/* pace for learners: slow is the default; 'very slow' for learners who need more time */
+const PACES=[{id:'vslow',name:'Very slow',k:3.2,hand:.32,voice:.62},{id:'slow',name:'Slow',k:2.3,hand:.45,voice:.72},{id:'normal',name:'Normal',k:1,hand:1,voice:.95}];
+let PACE=PACES[1];try{const sv=localStorage.getItem('pbsim-pace');const f=PACES.find(p=>p.id===sv);if(f)PACE=f}catch(e){}
 const STEPS=[
  {key:'place',type:'Position',title:'Place the sheet',guide:'Drag the kraft sheet onto the dashed outline on the cutting mat.',t:2,parts:['sheet','half','flapR','flapL'],mark:'Drag onto the outline',act:'Slide onto guide',
   kw:['place','position','put the sheet','align','keep the sheet','lay','sheet on'],content:'Lay the 25.4 × 20 cm sheet flat, short sides left and right, squared to the mat grid.'},
@@ -536,6 +580,9 @@ function freshState(){return{step:0,prog:0,vals:{},standing:false,done:false,lif
 const T={headset:0,finger:0,touch:0};
 let learner=LEARNERS[0].n;
 const V=k=>S.vals[k]||0;
+/* first part of every fold is the hand reaching for the paper and gripping it; the paper only moves after that */
+const GRIP=.18,PHASED=['center','flapR','foldL','creaseB','diamond','closeB','gusset'];
+const VP=k=>PHASED.includes(k)?seg(V(k),GRIP,1):V(k);
 
 /* ---------- UI ---------- */
 const sel=$('learnerSel');
@@ -551,8 +598,8 @@ function refreshSteps(){
   STEPS.forEach((s,i)=>{$('st'+i).className=i<S.step?'done':i===S.step&&!S.done?'cur':'pending';
     $('sb'+i).style.width=(i<S.step?100:i===S.step?S.prog*100:0)+'%';$('ch'+i).classList.toggle('cur',i===S.step&&!S.done)});
   $('stepCount').textContent=Math.min(S.step,N)+'/'+N;
-  if(S.done){$('gStep').textContent='Complete';$('gType').textContent='Done';$('gTitle').textContent='Bag finished';$('gText').textContent='Open Review session for the score, or Repeat activity to practise again.';$('gHold').hidden=true}
-  else{const st=STEPS[S.step];$('gStep').textContent=`Step ${S.step+1} of ${N}`;$('gType').textContent=st.type;$('gTitle').textContent=st.title;$('gText').textContent=vrText(st.guide);$('gHold').hidden=!st.dur}
+  if(S.done){$('gStep').textContent='Complete';$('gType').textContent='Done';$('gTitle').textContent='Bag finished';$('gText').textContent='Open Review session for the score, or Repeat activity to practise again.';$('gHold').hidden=true;$('gHands').hidden=true}
+  else{const st=STEPS[S.step];$('gStep').textContent=`Step ${S.step+1} of ${N}`;$('gType').textContent=st.type;$('gTitle').textContent=st.title;$('gText').textContent=vrText(st.guide);$('gHold').hidden=!st.dur;const ht=HAND_TXT[st.key]||['',''];$('gHandL').textContent=ht[0];$('gHandR').textContent=ht[1];$('gHands').hidden=false}
   refreshAct();
 }
 function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -562,7 +609,7 @@ function log(type,detail){
   $('logBody').insertAdjacentHTML('beforeend',rowHtml(e));const w=$('logwrap');w.scrollTop=w.scrollHeight;
 }
 let toastT;
-function toast(msg,good){const t=$('toast');t.textContent=msg;t.classList.toggle('good',!!good);t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
+function toast(msg,good){const t=$('toast');t.textContent=msg;t.classList.toggle('good',!!good);t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600*Math.min(2,PACE.k))}
 function error(msg,spoken){S.errors++;$('errCount').textContent=S.errors;log('Error',msg);toast(msg);sfx.err();say(spoken||msg)}
 function guidance(){const st=STEPS[S.step];log('Guidance',`Displayed instruction: ${st.title}`);const g=$('guide');g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash')}
 function fmt(sec){sec=Math.round(sec);return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')}
@@ -759,7 +806,7 @@ vid.addEventListener('error',()=>{const p=vid.parentNode;if(p.querySelector('.vm
 let speaking=false;
 function say(text,force){
   if(!force&&!$('speakTog').checked)return;
-  try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-IN';u.rate=.98;
+  try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(PACE.id==='normal'?text:String(text).replace(/([.!?])\s+/g,'$1 ... '));u.lang='en-IN';u.rate=PACE.voice;u.pitch=1;
     const v=speechSynthesis.getVoices().find(v=>/en-IN/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang));if(v)u.voice=v;
     speaking=true;pauseRec();u.onend=u.onerror=()=>{speaking=false;resumeRec()};speechSynthesis.speak(u)}catch(e){}
 }
@@ -814,7 +861,7 @@ const SC=()=>BASE*view.z;
 function toScreen(x,z){const s=SC();return[(x-view.cx)*s+W/2,(z-view.cz)*s+H*OY]}
 function toWorld(px,py){const s=SC();return[(px-W/2)/s+view.cx,(py-H*OY)/s+view.cz]}
 function resize(){const r=stage.getBoundingClientRect();if(!r.width||!r.height)return;W=r.width;H=r.height;DPR=Math.min(devicePixelRatio||1,2);
-  el.width=Math.round(W*DPR);el.height=Math.round(H*DPR);BASE=Math.min(W/4.3,H/3.2)}
+  el.width=Math.round(W*DPR);el.height=Math.round(H*DPR);BASE=Math.min(W/4.3,H/3.2);if(typeof snapFrame==='function'&&typeof S!=='undefined'&&S)snapFrame()}
 new ResizeObserver(resize).observe(stage);
 
 /* textures */
@@ -851,6 +898,20 @@ function piece(pts,part,o={}){
   if(!o.noEdge){path(w);ctx.lineWidth=1.1/s;ctx.strokeStyle='rgba(90,58,28,.6)';ctx.stroke()}
   if(hlAmt>0&&hlParts.includes(part)&&!o.noHl){path(w);ctx.fillStyle=`rgba(95,240,223,${hlAmt*.28})`;ctx.fill();ctx.lineWidth=2/s;ctx.strokeStyle=`rgba(95,240,223,${.35+hlAmt*.6})`;ctx.stroke()}
   return w}
+/* a soft fold like real paper: the free edge rolls over in a curl instead of turning as a stiff board.
+   h = final crease line, Lp = panel width, sg = +1 panel lies to the right of h, -1 to the left, f = 0..1 */
+function rollPanel(h,Lp,sg,f,z0,z1,part,o={}){
+  f=clamp(f);const xr=h+sg*Lp*(1-f),e=h+sg*Lp*(1-2*f),r=f>.004&&f<.996?.03+.075*Math.sin(Math.PI*f):0;
+  const band=(a,b,opt)=>piece([[Math.min(a,b),z0],[Math.max(a,b),z0],[Math.max(a,b),z1],[Math.min(a,b),z1]],part,opt);
+  if(Math.abs(xr-h)>.002)band(h,xr,{...o});
+  if(f>.004){
+    if(r>0){const a=P(xr,z0),b=P(xr+sg*r,z0),c=P(xr+sg*r,z1),d=P(xr,z1),sc=SC();
+      ctx.save();ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(d[0],d[1]);ctx.closePath();
+      const g=ctx.createLinearGradient(a[0],a[1],b[0],b[1]);g.addColorStop(0,'#b48a58');g.addColorStop(.5,'#dcbb8c');g.addColorStop(1,'#8c6740');
+      ctx.shadowColor='rgba(45,28,10,.32)';ctx.shadowBlur=7*DPR;ctx.shadowOffsetX=sg*r*.6*sc*DPR;ctx.fillStyle=g;ctx.fill();ctx.shadowColor='transparent';
+      ctx.lineWidth=1.1/sc;ctx.strokeStyle='rgba(90,58,28,.6)';ctx.stroke();ctx.restore();hits.push({w:[a,b,c,d],part,proxy:false})}
+    band(e,xr,{...o,h:.015+r*.5,shade:(o.shade||0)+.08})}
+  return{xr,e,r,f}}
 /* a panel hinged on a line x = h (folding over the z axis); a,b are signed distances from the hinge */
 function xPanel(h,y0,th,a,b,z0,z1,part,o={}){
   const c=Math.cos(th),s=Math.sin(th),xa=h+a*c,xb=h+b*c,ya=y0+a*s,yb=y0+b*s,zc=(z0+z1)/2,ka=1+Math.max(0,ya)*.14,kb=1+Math.max(0,yb)*.14;
@@ -874,21 +935,263 @@ function punchProp(tx,tz,ang,press,active){ctx.save();ctx.translate(tx,tz);ctx.r
   ctx.fillStyle='#c8ccd4';ctx.beginPath();ctx.arc(0,0,.045,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1b2f66';ctx.beginPath();ctx.arc(0,0,.02,0,Math.PI*2);ctx.fill();ctx.restore()}
 function coil(x,z){ctx.save();ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=5*DPR;ctx.shadowOffsetY=3*DPR;ctx.strokeStyle='#1d1a17';ctx.lineWidth=.04;
   for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(x+i*.012,z-i*.01,.15-i*.02,.12-i*.015,.3,0,Math.PI*2);ctx.stroke()}ctx.restore()}
-function handGlyph(x,z,h,grip){ctx.save();ctx.translate(x,z);ctx.rotate(-.45);const sh=.08+h*.6;ctx.globalAlpha=grip?.75:.55;
-  ctx.shadowColor='rgba(10,30,50,.25)';ctx.shadowBlur=8*DPR;ctx.shadowOffsetX=sh*SC()*.4*DPR;ctx.shadowOffsetY=sh*SC()*.5*DPR;
-  ctx.fillStyle='#e3f1fb';ctx.strokeStyle='#7cc4f2';ctx.lineWidth=1.5/SC();
-  const fl=grip?.16:.22;ctx.beginPath();ctx.roundRect?ctx.roundRect(-.035,0,.07,fl+.06,.035):ctx.rect(-.035,0,.07,fl+.06);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.ellipse(.07,fl+.13,.13,.12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-  [.06,.12,.17].forEach((dx,i)=>{ctx.beginPath();ctx.ellipse(dx+.01,fl+.05+i*.012,.03,.06,0,0,Math.PI*2);ctx.fill();ctx.stroke()});
-  ctx.beginPath();ctx.ellipse(-.07,fl+.16,.035,.08,-.7,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.roundRect?ctx.roundRect(.0,fl+.2,.16,.18,.05):ctx.rect(0,fl+.2,.16,.18);ctx.fill();ctx.stroke();
-  ctx.restore()}
+/* ---------- two virtual hands: human-like poses + per-step choreography ---------- */
+const handLayer=document.createElement('canvas'),hctx=handLayer.getContext('2d');
+function cap(c,x0,y0,x1,y1){c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke()}
+/* finger curl (1 = straight), spread, thumb tip, and which point of the hand sits on the target */
+const POSE={
+  open: {c:[1,1,1,1],      sp:1,  th:[-.125,.19], o:[0,0]},
+  flat: {c:[1,1,1,1],      sp:.42,th:[-.07,.25],  o:[.085,.22]},
+  point:{c:[1,.47,.47,.5], sp:.9, th:[-.05,.21],  o:[0,0]},
+  pinch:{c:[.8,.56,.54,.54],sp:.8,th:[-.012,.07], o:[-.005,.05]},
+  hold: {c:[1,1,1,.96],    sp:.42,th:[-.075,.13], o:[-.068,.15]},
+  grip: {c:[.5,.44,.44,.46],sp:.85,th:[.03,.17],  o:[.085,.27]}};
+const FING=[[0,.22,0,0,.058],[.066,.205,.076,-.025,.058],[.126,.225,.144,.025,.054],[.178,.265,.206,.105,.046]];
+const SKIN='#e9c4b1',SKIN_D='#b48a76',NAIL='#fefcfa',LINE='rgba(160,112,92,.55)';
+function mkHand(x,z){return{x,z,h:.15,rot:0,tw:-.15,c:[1,1,1,1],sp:1,th:[-.125,.19],o:[0,0]}}
+const HL=mkHand(-.9,.4),HR=mkHand(.9,.4);
+/* shoulders sit off-screen below the workbench, like the person is seated at the table */
+const SHL=()=>[W*.03,H*1.5],SHR=()=>[W*.9,H*1.55];
+function handShape(c,st,pass){
+  const out=pass===0,w=out?1.36:1;c.lineCap='round';
+  c.beginPath();c.ellipse(.088,.33,.13+(out?.011:0),.14+(out?.011:0),0,0,Math.PI*2);c.fill();
+  c.lineWidth=out?.18:.16;cap(c,.085,.4,.088,.5);
+  FING.forEach(([bx,by,tx,ty,fw],i)=>{const k=st.c[i],ex=bx+(tx-bx)*st.sp,ux=(ex-bx)*k,uy=(ty-by)*k;
+    c.lineWidth=fw*w;cap(c,bx,by,bx+ux,by+uy);
+    if(!out){const an=Math.atan2(uy,ux)+Math.PI/2;
+      if(k>.78){c.save();c.fillStyle=NAIL;c.strokeStyle=LINE;c.lineWidth=.004;c.beginPath();c.ellipse(bx+ux*.9,by+uy*.9,fw*.34,fw*.46,an,0,Math.PI*2);c.fill();c.stroke();c.restore()}
+      c.save();c.strokeStyle=LINE;c.lineWidth=.005;const m=k>.78?.55:.92,cx=bx+ux*m,cy=by+uy*m,dx=Math.cos(an)*fw*.22,dy=Math.sin(an)*fw*.22;
+      cap(c,cx-dx,cy-dy,cx+dx,cy+dy);c.restore()}});
+  c.lineWidth=.066*w;cap(c,-.025,.37,st.th[0],st.th[1]);
+  if(!out){const tx=st.th[0],ty=st.th[1],an=Math.atan2(ty-.37,tx+.025)+Math.PI/2;c.save();c.fillStyle=NAIL;c.strokeStyle=LINE;c.lineWidth=.004;
+    c.beginPath();c.ellipse(-.025+(tx+.025)*.86,.37+(ty-.37)*.86,.019,.026,an,0,Math.PI*2);c.fill();c.stroke();
+    c.strokeStyle=LINE;c.lineWidth=.006;c.beginPath();c.moveTo(.0,.27);c.quadraticCurveTo(.09,.235,.19,.285);c.stroke();
+    c.beginPath();c.moveTo(.02,.44);c.quadraticCurveTo(.05,.36,.02,.3);c.stroke();c.restore()}
+}
+/* Hand drawn like the reference workshop file: 21 joint points (wrist, thumb, four fingers),
+   skin fill with a soft outline, white nails, knuckle creases and a forearm. Units: wrist at (0,0), fingers toward -y. */
+const TPL=[[0,0],[-.19,-.08],[-.31,-.2],[-.39,-.32],[-.45,-.42],[-.15,-.45],[-.17,-.62],[-.18,-.73],[-.19,-.83],[0,-.47],[0,-.66],[0,-.78],[0,-.88],[.13,-.44],[.15,-.61],[.16,-.71],[.17,-.8],[.24,-.38],[.28,-.5],[.3,-.58],[.32,-.65]];
+const FINGERS=[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]],FWID=[1.15,1,1.04,.96,.82];
+const HSK={skin:'#e8c6b5',line:'#c4957f',nail:'#fffaf5'};
+const HSCALE=.66;
+function buildPose(pose){
+  let p=TPL.map(([x,y])=>({x,y}));const L=(a,b,t)=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t)});
+  const curl=(f,c)=>{const m=p[FINGERS[f][0]];[.25,.55,.85].forEach((k,j)=>{const q=p[FINGERS[f][j+1]];p[FINGERS[f][j+1]]={x:m.x+(q.x-m.x)*(1-k*c),y:m.y+(q.y-m.y)*(1-k*c)}})};
+  const spread=sp=>{for(let f=1;f<5;f++)FINGERS[f].forEach((i,j)=>{if(j>0)p[i]={x:p[i].x*sp,y:p[i].y}})};
+  const thumb=(a,b,c)=>{p[2]={x:a[0],y:a[1]};p[3]={x:b[0],y:b[1]};p[4]={x:c[0],y:c[1]}};
+  let anc;
+  switch(pose){
+  case'pinch':spread(.95);p[8]=L(p[8],{x:-.25,y:-.73},.6);p[7]=L(p[7],{x:-.22,y:-.69},.35);
+    p[4]=L(p[4],{x:p[8].x+.015,y:p[8].y+.035},.92);p[3]=L(p[3],{x:-.33,y:-.47},.6);curl(2,.2);curl(3,.3);curl(4,.35);anc=L(p[4],p[8],.5);break;
+  case'point':curl(2,.85);curl(3,.85);curl(4,.85);thumb([-.25,-.25],[-.17,-.36],[-.08,-.44]);anc=p[8];break;
+  case'flat':spread(.8);thumb([-.29,-.2],[-.33,-.32],[-.33,-.43]);anc={x:0,y:-.5};break;
+  case'grip':curl(1,.75);curl(2,.8);curl(3,.8);curl(4,.8);thumb([-.27,-.22],[-.22,-.36],[-.12,-.44]);anc={x:-.02,y:-.42};break;
+  case'edge':spread(.72);thumb([-.25,-.2],[-.3,-.34],[-.31,-.48]);anc={x:-.13,y:-.6};break;
+  case'hold':spread(.8);thumb([-.25,-.22],[-.32,-.36],[-.38,-.5]);anc=p[4];break;
+  default:spread(1.05);anc=L(p[4],p[8],.5)}
+  return{lm:p,anc:{x:anc.x,y:anc.y}}}
+const POSE_LM={};const poseLM=k=>POSE_LM[k]||(POSE_LM[k]=buildPose(k));
+function handGeo(lm){const sz=Math.hypot(lm[0].x-lm[9].x,lm[0].y-lm[9].y)||1,fw=sz*.25,d={x:(lm[0].x-lm[9].x)/sz,y:(lm[0].y-lm[9].y)/sz},n={x:-d.y,y:d.x},ww=sz*.36,far={x:lm[0].x+d.x*sz*3.6,y:lm[0].y+d.y*sz*3.6};
+  return{fw,arm:[[lm[0].x+n.x*ww,lm[0].y+n.y*ww],[far.x+n.x*ww*1.25,far.y+n.y*ww*1.25],[far.x-n.x*ww*1.25,far.y-n.y*ww*1.25],[lm[0].x-n.x*ww,lm[0].y-n.y*ww]],
+    palm:[0,1,2,5,9,13,17].map(i=>[lm[i].x,lm[i].y]),d}}
+/* part: 'all' | 'body' (arm, palm, four fingers) | 'thumb' */
+function paintHand(c,lm,part){
+  const {fw,arm,palm}=handGeo(lm),ex=.014,fl=part==='thumb'?[0]:part==='body'?[1,2,3,4]:[0,1,2,3,4];
+  const shape=(e,col)=>{c.fillStyle=c.strokeStyle=col;c.lineCap='round';c.lineJoin='round';
+    const pl=pts=>{c.beginPath();pts.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath()};
+    if(part!=='thumb'){pl(arm);c.lineWidth=e*2;c.fill();if(e)c.stroke();pl(palm);c.lineWidth=fw*1.15+e*2;c.fill();c.stroke()}
+    fl.forEach(i=>{c.beginPath();FINGERS[i].forEach((k,j)=>j?c.lineTo(lm[k].x,lm[k].y):c.moveTo(lm[k].x,lm[k].y));c.lineWidth=fw*FWID[i]+e*2;c.stroke()})};
+  shape(ex,HSK.line);shape(0,HSK.skin);
+  c.strokeStyle='rgba(180,128,108,.45)';c.lineWidth=.008;
+  [6,10,14,18,7,11,15,19,3].forEach(k=>{const fi=FINGERS.findIndex(f=>f.includes(k));if(!fl.includes(fi))return;const a=lm[k-1],b=lm[k],dx=b.x-a.x,dy=b.y-a.y,Ln=Math.hypot(dx,dy)||1,nx=-dy/Ln,ny=dx/Ln,w=fw*.22;
+    c.beginPath();c.moveTo(b.x-nx*w,b.y-ny*w);c.quadraticCurveTo(b.x+dx/Ln*.012,b.y+dy/Ln*.012,b.x+nx*w,b.y+ny*w);c.stroke()});
+  [4,8,12,16,20].forEach((k,i)=>{if(!fl.includes(i))return;const a=lm[k-1],b=lm[k],an=Math.atan2(b.y-a.y,b.x-a.x),Ln=Math.hypot(b.x-a.x,b.y-a.y),o=Math.min(Ln*.25,fw*.25);
+    c.save();c.translate(b.x-Math.cos(an)*o,b.y-Math.sin(an)*o);c.rotate(an);c.beginPath();c.ellipse(0,0,fw*FWID[i]*.36,fw*FWID[i]*.27,0,0,Math.PI*2);
+    c.fillStyle=HSK.nail;c.fill();c.strokeStyle='rgba(196,149,127,.7)';c.lineWidth=.006;c.stroke();c.restore()})}
+function drawHand(st,left,alpha,tint){
+  const s=SC();if(handLayer.width!==el.width||handLayer.height!==el.height){handLayer.width=el.width;handLayer.height=el.height}
+  const c=hctx;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,handLayer.width,handLayer.height);
+  const lm=st.lm||poseLM('open').lm,anc=st.anc||poseLM('open').anc,k=HSCALE*(1+st.h*.25),under=(st.hold||0)>.5;
+  c.setTransform(ctx.getTransform());c.translate(st.x,st.z);if(left)c.scale(-1,1);c.rotate(st.rot);c.scale(k,k);c.translate(-anc.x,-anc.y);
+  const M=c.getTransform();
+  paintHand(c,lm,under?'body':'all');
+  if(under){
+    c.setTransform(ctx.getTransform());c.globalCompositeOperation='destination-out';
+    hits.forEach(hh=>{if(hh.proxy||!inPoly(st.x,st.z,hh.w))return;c.beginPath();hh.w.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.fill()});
+    c.globalCompositeOperation='source-over';c.setTransform(M);
+    c.save();c.globalAlpha=.3;c.strokeStyle=HSK.line;c.lineWidth=.01;c.setLineDash([.03,.022]);c.lineCap='round';
+    [1,2,3,4].forEach(i=>{c.beginPath();FINGERS[i].forEach((kk,j)=>j?c.lineTo(lm[kk].x,lm[kk].y):c.moveTo(lm[kk].x,lm[kk].y));c.stroke()});c.restore();
+    paintHand(c,lm,'thumb')}
+  const g=handGeo(lm),bp=M.transformPoint(new DOMPoint(lm[0].x+g.d.x*.32,lm[0].y+g.d.y*.32));
+  const sh=.06+st.h*.6;ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=alpha;
+  ctx.shadowColor='rgba(70,45,25,.22)';ctx.shadowBlur=(4+st.h*26)*DPR;ctx.shadowOffsetX=sh*s*.4*DPR;ctx.shadowOffsetY=sh*s*.55*DPR;
+  ctx.drawImage(handLayer,0,0);ctx.shadowColor='transparent';
+  const r=Math.max(7,Math.min(11,s*.036))*DPR;ctx.globalAlpha=.95;ctx.fillStyle=tint;ctx.beginPath();ctx.arc(bp.x,bp.y,r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font=`700 ${r*1.15|0}px "Source Sans 3",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(left?'L':'R',bp.x,bp.y+r*.06);ctx.restore()}
+function stepHand(h,t,rate,left){rate*=PACE.hand;const k=1-Math.exp(-HDT*rate),P0=POSE[t.pose]||POSE.open,kp=1-Math.exp(-HDT*Math.max(9*PACE.hand,rate*.8));
+  h.x=lerp(h.x,t.x,k);h.z=lerp(h.z,t.z,k);h.h=lerp(h.h,t.h,kp);h.tw=lerp(h.tw,t.tw,kp);
+  for(let i=0;i<4;i++)h.c[i]=lerp(h.c[i],P0.c[i],kp);h.sp=lerp(h.sp,P0.sp,kp);
+  h.th[0]=lerp(h.th[0],P0.th[0],kp);h.th[1]=lerp(h.th[1],P0.th[1],kp);h.o[0]=lerp(h.o[0],P0.o[0],kp);h.o[1]=lerp(h.o[1],P0.o[1],kp);
+  const sp=left?SHL():SHR(),S=toWorld(sp[0],sp[1]),dx=h.x-S[0],dz=h.z-S[1],want=t.ra!=null?t.ra:(left?Math.atan2(-dx,-dz):Math.atan2(dx,-dz))+h.tw;
+  let d=want-h.rot;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;h.rot+=d*Math.min(1,kp*1.4);h.hold=lerp(h.hold||0,t.pose==='hold'?1:0,kp);
+  const T=poseLM(t.pose||'open');if(!h.lm){h.lm=T.lm.map(q=>({...q}));h.anc={...T.anc}}else{h.lm.forEach((q,i)=>{q.x=lerp(q.x,T.lm[i].x,kp);q.y=lerp(q.y,T.lm[i].y,kp)});h.anc.x=lerp(h.anc.x,T.anc.x,kp);h.anc.y=lerp(h.anc.y,T.anc.y,kp)}}
+/* What each hand is doing in every step, in plain words for the learner */
+const HAND_TXT={
+  place:['Holds the left edge: thumb on top, fingers under the sheet','Holds the right edge the same way; both hands slide the sheet onto the outline'],
+  center:['Presses the left half flat with fingers spread, then presses the corners together','Lies flat along the right edge, lifts it and rolls it over to the left edge, presses the corners, runs the index finger down the fold, then opens it'],
+  flapR:['Presses the sheet flat with fingers spread','Lies along the narrow strip, rolls it over, then runs the index finger down the crease'],
+  glue:['Presses the sheet flat so it does not slide','Holds the glue bottle and draws one line from top to bottom'],
+  foldL:['Lies flat along the left edge, lifts it and rolls the wide panel over onto the glue','Presses the sheet flat, moves away as the panel lands, then runs the index finger down the seam'],
+  creaseB:['Pinches the left corner and folds the strip up','Pinches the right corner; both index fingers crease from the middle outward, then it is opened again'],
+  diamond:['Pulls the left corner out','Pulls the right corner out so the bottom flattens into a diamond'],
+  closeB:['Holds the bottom down with a finger','Applies glue, folds the top and bottom points in with the index finger, then both hands press'],
+  gusset:['Pushes the left side inward and runs a finger down the crease','Pushes the right side inward and runs a finger down the crease'],
+  open:['Opens the left side, then holds the bag','Opens the right side, then squeezes the punch for the holes'],
+  handles:['Holds the bag steady','Threads the cord through the holes and pulls it through']};
+function supportLocal(key){return[0,0]}
+const GT=()=>G.bag||{x0:-.4,x1:.4,zt:-1,zb:.55,dx:0,dz:0};
+/* target pose for both hands from the live paper geometry; coordinates in sheet space unless w:1 */
+/* target pose for both hands from the live paper geometry; coordinates in sheet space unless w:1.
+   Pattern from the reference video: one hand presses flat and holds, the other lifts, rolls, pinches,
+   or runs the index finger along the crease. tw = small wrist twist relative to the forearm. */
+function chore(key,vo){
+  const v=vo!=null?vo:key?VP(key):0,E=(x,z,h,pose,tw,w)=>({x,z,h,pose,tw:tw==null?-.15:tw,w}),HO=(x,z,h,ra)=>({x,z,h,pose:'hold',tw:0,ra}),EG=(x,z,h,ra,pose)=>({x,z,h,pose:pose||'edge',tw:0,ra});
+  switch(key){
+  case'place':return{cur:'R',L:HO(-1.76,.55,CF.lift+.04,0),R:HO(.7,.55,CF.lift+.04,0)};
+  /* carrying an edge: grip it thumb-on-top, then keep pinching the edge while it is lifted, turned over and laid down.
+     The hand never lets go of the edge until it has landed on its target. */
+  /* Edge folds, as in the reference video: the folding hand lies flat along the edge (fingers up, thumb tucked at the edge),
+     rides on top of the paper as it rolls over and lays it down; the other hand presses flat with fingers spread. */
+  case'center':{const rl=G.rollC||{f:0,e:.74,xr:.74},f=rl.f,up=.04+.2*Math.sin(Math.PI*f);
+    const ride=EG(f<.02?rl.e-.06:(rl.e+rl.xr)/2-.02,.35,up,-.2-.15*Math.sin(Math.PI*f));
+    if(v<.38)return{cur:'R',L:EG(-1.3,-.15,.02,-.35,'open'),R:ride};
+    if(v<.47)return{cur:'R',L:EG(-1.5,-.7,.02,-.3,'flat'),R:EG(-1.3,.55,.02,-.15,'flat')};              /* press the corners together */
+    if(v<.72)return{cur:'R',L:EG(-1.3,-.1,.02,-.3,'flat'),R:E(-.56,lerp(-.8,.85,seg(v,.47,.7)),.02,'point',-.1)}; /* index finger down the fold */
+    return{cur:'R',L:EG(-1.3,-.15,.02,-.35,'open'),R:ride}}
+  case'flapR':{const rl=G.rollF||{f:0,e:.74,xr:.74},f=rl.f,L=EG(-.25,.1,.02,-.35,'open');
+    if(v<.55)return{cur:'R',L,R:EG(f<.02?rl.e-.05:(rl.e+rl.xr)/2-.01,.35,.04+.08*Math.sin(Math.PI*f),-.2)};
+    return{cur:'R',L,R:E(.6,lerp(-.82,.85,seg(v,.58,1)),.02,'point',-.1)}}
+  case'glue':{const R=G.bottle?E(...gripOnBottle(),.06,'grip',.25,1):E(G.h2+.22,.5,.12,'open');
+    return{cur:'R',L:EG(-.35,.15,.02,-.35,'open'),R}}
+  case'foldL':{const rl=G.rollL||{f:0,e:-1.8,xr:-1.8},f=rl.f;
+    if(v<.6){const L=EG(f<.02?rl.e+.06:(rl.e+rl.xr)/2+.02,.35,.04+.2*Math.sin(Math.PI*f),-.2-.15*Math.sin(Math.PI*f));
+      return{cur:'L',L,R:f<.6?EG(.25,-.1,.02,-.35,'open'):EG(1.05,-.1,.05,-.35,'open')}}
+    if(v<.68)return{cur:'L',L:EG(.45,.45,.02,-.2,'flat'),R:EG(.45,-.45,.02,-.3,'flat')};
+    return{cur:'R',L:EG(-.05,.1,.02,-.35,'open'),R:E(.55,lerp(-.82,.85,seg(v,.68,1)),.02,'point',-.1)}}
+  case'creaseB':{const a=there(v)*Math.PI*.96,ez=.55+.45*Math.cos(a),lift=.45*Math.abs(Math.sin(a)),flip=Math.cos(a)<.75;
+    if(v<.38||v>.72){if(!flip)return{cur:'R',L:HO(-.5,ez-.04,lift*.45+.04,0),R:HO(.5,ez-.04,lift*.45+.04,0)};
+      return{cur:'R',L:E(-.5,ez+.01,lift*.45+.05,'pinch',-.3),R:E(.5,ez+.01,lift*.45+.05,'pinch',-.3)}}
+    const t=seg(v,.4,.66);return{cur:'R',L:E(lerp(-.05,-.5,t),.56,.02,'point',-.2),R:E(lerp(.05,.5,t),.56,.02,'point',-.2)}}
+  case'diamond':{const sx=lerp(.6,1,ease(v));return{cur:'R',L:E(-.6*sx-.01,.55,.05,'pinch',-.55),R:E(.6*sx+.01,.55,.05,'pinch',-.55)}}
+  case'closeB':{const L=E(-.3,.42,.02,'point',-.25);
+    if(v<.3)return{cur:'R',L,R:G.bottle?E(...gripOnBottle(),.06,'grip',.25,1):E(.4,.8,.12,'open')};
+    if(v>.95)return{cur:'R',L:E(-.2,.5,.02,'flat',-.1),R:E(.2,.5,.02,'flat',-.1)};
+    let tz,lift;if(v<.64){const f=ease(seg(v,.3,.62))*Math.PI;tz=.4-.15*Math.cos(f);lift=.15*Math.sin(f)}else{const f=ease(seg(v,.66,1))*Math.PI;tz=.7+.15*Math.cos(f);lift=.15*Math.sin(f)}
+    return{cur:'R',L,R:E(.02,tz,lift*.6+.03,'point',-.2)}}
+  case'gusset':{const a=there(v)*Math.PI*.95,lift=.2*Math.sin(a),sw=seg(v,.4,.68);
+    if(v>.38&&v<.72)return{cur:'R',L:E(-.4,lerp(-.85,.45,sw),.02,'point',-.1),R:E(.4,lerp(-.85,.45,sw),.02,'point',-.1)};
+    if(Math.cos(a)>.75)return{cur:'R',L:HO(-.4-.2*Math.cos(a)+.035,-.1,lift*.5+.04,0),R:HO(.4+.2*Math.cos(a)-.035,-.1,lift*.5+.04,0)};
+    return{cur:'R',L:E(-.4-.2*Math.cos(a),-.1,lift*.5+.05,'pinch',-.4),R:E(.4+.2*Math.cos(a),-.1,lift*.5+.05,'pinch',-.4)}}
+  case'open':{const b=GT(),ob=seg(v,.7,1),mz=(b.zt+b.zb)/2;
+    if(ob<=0)return{cur:'R',L:E(b.x0-.03,mz+.2,.08,'grip',-.5),R:E(b.x1+b.dx+.03,mz+.2+b.dz,.08,'grip',-.5)};
+    const pp=P(.2,b.zt+.13),q=[pp[0]+.24*Math.cos(-.15),pp[1]+.24*Math.sin(-.15)];
+    return{cur:'R',L:E(-.25,b.zt+.7,.02,'flat',-.1),R:E(q[0],q[1],.05-(G.punchPr||0)*.03,'grip',.2,1)}}
+  case'handles':{const b=GT();return{cur:'R',L:E(-.25,b.zt+.7,.02,'flat',-.1),
+    R:G.cordTip?E(G.cordTip[0],G.cordTip[1],.06,'pinch',-.3,1):E(.2,b.zt+.13,.12,'open')}}
+  }
+  return{cur:'R',L:E(-.95,.45,.1,'open'),R:E(1.15,.45,.1,'open')}}
+/* what the hands are doing right now, as short spoken captions; ranges are in raw step progress */
+const PHASE={
+  center:[[0,.18,'Hold the right edge'],[.18,.49,'Lift it and fold it over to the left'],[.49,.57,'Line up the corners'],[.57,.77,'Press the fold with your finger'],[.77,1,'Open it out']],
+  flapR:[[0,.18,'Hold the narrow strip'],[.18,.63,'Fold the strip over'],[.63,1,'Press the crease']],
+  glue:[[0,1,'Hold the sheet. Draw a line of glue']],
+  foldL:[[0,.18,'Hold the left edge'],[.18,.67,'Lift it and fold it onto the glue'],[.67,.74,'Line up the edge'],[.74,1,'Press the seam']],
+  creaseB:[[0,.18,'Hold both bottom corners'],[.18,.49,'Fold the bottom up'],[.49,.77,'Press the crease'],[.77,1,'Fold it back down']],
+  diamond:[[0,.18,'Hold both corners'],[.18,1,'Pull the corners out']],
+  closeB:[[0,.18,'Hold the bottom'],[.18,.43,'Put glue in the middle'],[.43,.7,'Fold the top flap down'],[.7,1,'Fold the bottom flap up']],
+  gusset:[[0,.18,'Hold both sides'],[.18,.49,'Fold the sides in'],[.49,.77,'Press the creases'],[.77,1,'Open them out']],
+  open:[[0,.7,'Open the bag'],[.7,1,'Punch the holes']],
+  handles:[[0,1,'Thread the cord']]};
+function phaseOf(key){const L=PHASE[key];if(!L)return null;const r=V(key);let i=L.findIndex(p=>r>=p[0]&&r<p[1]);if(i<0)i=L.length-1;return{i,n:L.length,txt:L[i][2],a:L[i][0],b:L[i][1]}}
+let lastPhase='';
+function showPhase(key,working){const el2=$('phase');
+  if(!working||!key){if(!el2.hidden){el2.hidden=true;lastPhase=''}return}
+  const ph=phaseOf(key);if(!ph){el2.hidden=true;return}
+  const id=key+ph.i;if(id===lastPhase)return;lastPhase=id;
+  $('phaseNum').textContent=ph.i+1;$('phaseTxt').textContent=ph.txt;el2.hidden=false;el2.classList.remove('pop');void el2.offsetWidth;el2.classList.add('pop');
+  log('Guidance',`Hand action: ${ph.txt}`);say(ph.txt)}
+/* curved dashed arrow in sheet coordinates: where the paper will travel */
+function foldArrow(x0,z0,x1,z1,bend,a){if(a<=.02)return;const p=P(x0,z0),q=P(x1,z1),mx=(p[0]+q[0])/2,mz=(p[1]+q[1])/2,dx=q[0]-p[0],dz=q[1]-p[1],L=Math.hypot(dx,dz)||1;
+  const cx=mx-dz/L*bend*L,cz=mz+dx/L*bend*L,s=SC();ctx.save();ctx.globalAlpha=a;ctx.lineCap='round';
+  for(const [col,w] of [['rgba(14,44,74,.55)',7],['#5ff0df',4]]){ctx.strokeStyle=col;ctx.lineWidth=w/s;ctx.setLineDash([.06,.045]);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.quadraticCurveTo(cx,cz,q[0],q[1]);ctx.stroke()}
+  ctx.setLineDash([]);const an=Math.atan2(q[1]-cz,q[0]-cx),hs=.09;ctx.fillStyle='#5ff0df';ctx.strokeStyle='rgba(14,44,74,.6)';ctx.lineWidth=2/s;
+  ctx.beginPath();ctx.moveTo(q[0],q[1]);ctx.lineTo(q[0]-hs*Math.cos(an-.45),q[1]-hs*Math.sin(an-.45));ctx.lineTo(q[0]-hs*Math.cos(an+.45),q[1]-hs*Math.sin(an+.45));ctx.closePath();ctx.stroke();ctx.fill();ctx.restore()}
+/* glowing crease line while it is being pressed */
+function creaseGlow(x0,z0,x1,z1,a){if(a<=.02)return;const p=P(x0,z0),q=P(x1,z1),s=SC(),pul=.6+.4*Math.sin(performance.now()/180);ctx.save();ctx.globalAlpha=a*pul;ctx.lineCap='round';
+  ctx.strokeStyle='rgba(95,240,223,.35)';ctx.lineWidth=14/s;ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();
+  ctx.strokeStyle='#5ff0df';ctx.lineWidth=3/s;ctx.setLineDash([.05,.035]);ctx.stroke();ctx.restore()}
+function foldGuides(key,working){if(!working||!key)return;const r=V(key),pre=1-seg(r,GRIP+.05,GRIP+.25),inR=(a,b)=>r>=a&&r<b?Math.min(1,(r-a)*12,(b-r)*12):0;
+  switch(key){
+  case'center':foldArrow(.7,.55,-1.72,.55,-.22,pre);creaseGlow(-.53,-1,-.53,1,inR(.49,.77));break;
+  case'flapR':foldArrow(.72,.55,.47,.55,-.5,pre);creaseGlow(.6,-1,.6,1,inR(.63,1));break;
+  case'foldL':foldArrow(-1.75,.55,.55,.55,-.22,pre);creaseGlow(.6,-1,.6,1,inR(.67,1));break;
+  case'creaseB':foldArrow(0,.98,0,.14,.45,pre);creaseGlow(-.4,.55,.4,.55,inR(.49,.77));break;
+  case'diamond':foldArrow(-.3,.55,-.95,.55,.3,pre);foldArrow(.3,.55,.95,.55,-.3,pre);break;
+  case'gusset':foldArrow(-.58,-.2,-.25,-.2,.45,pre);foldArrow(.58,-.2,.25,-.2,-.45,pre);creaseGlow(-.4,-1,-.4,.55,inR(.49,.77));creaseGlow(.4,-1,.4,.55,inR(.49,.77));break;
+  case'closeB':{const v=VP(key);if(v>.28&&v<.5)foldArrow(0,.25,0,.52,.4,1);if(v>.62&&v<.8)foldArrow(0,.85,0,.58,.4,1);break}}}
+/* where a hand is touching or holding the paper */
+function contactMark(h,tint,active){if(!active||h.h>.09)return;const pose=h.c[1]<.8?(h.c[0]<.9?'pinch':'point'):'flat',s=SC(),pul=.5+.5*Math.sin(performance.now()/220);
+  ctx.save();ctx.strokeStyle=tint;ctx.lineWidth=3/s;ctx.globalAlpha=.55+.4*pul;ctx.beginPath();ctx.arc(h.x,h.z,((h.hold||0)>.5?.075:.055)+.02*pul,0,Math.PI*2);ctx.stroke();
+  if((h.hold||0)<.5){ctx.fillStyle=tint;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(h.x,h.z,.018,0,Math.PI*2);ctx.fill()}ctx.restore()}
+function gripOnBottle(){const [bx,bz,a]=G.bottle,d=-.4;return[bx-d*Math.sin(a),bz+d*Math.cos(a)]}
+function updateHands(key,working){
+  const raw=key?V(key):0,appr=PHASED.includes(key)&&working&&raw<GRIP;
+  let c=chore(key);
+  if(appr){/* reach: open hand above the grip point, then close the fingers on the paper */c=chore(key,0);const t=raw/GRIP;
+    ['L','R'].forEach(h=>{const q=c[h];if(t<.55){c[h]={...q,pose:q.pose==='point'?'point':'open',h:q.h+.14*(1-t/.55)}}})}
+  G.appr=appr;
+  const active=working||S.dragging||S.auto,toW=t=>{if(t.w)return t;const p=P(t.x,t.z);return{...t,x:p[0],z:p[1]}};
+  let L=toW(c.L),R=toW(c.R);
+  if(!active){/* idle: hover above the start of the move, fingers relaxed; the cursor hand follows the pointer */
+    const relax=t=>({...t,pose:t.pose==='pinch'||t.pose==='grip'||t.pose==='hold'||t.pose==='edge'?'open':t.pose,h:Math.max(t.h,.1)});
+    L=relax(L);R=relax(R);const cur=c.cur==='L'?'L':'R',ch=cur==='L'?L:R;
+    if(handVis){ch.x=handT.x;ch.z=handT.z;ch.pose=S.hover?'point':'open';ch.h=.16}}
+  stepHand(HL,L,active?16:(c.cur==='L'&&handVis?40:7),true);stepHand(HR,R,active?16:(c.cur==='R'&&handVis?40:7),false);
+  return c.cur}
 
 /* view tween */
 let camTw={t:1};
-function frame(key){const c=VIEW[key]||VIEW.place;camTw={f:[view.cx,view.cz,view.z],to:c,t:0}}
+const BX_A=[-1.42,-1.08,1.42,1.3],BX_B=[-.5,-1.08,1.56,1.32],BX_C=[-.15,-1.45,1.72,.95];
+const BOX={place:[-1.5,-1.15,2.0,1.85],center:BX_A,flapR:BX_A,glue:BX_A,foldL:BX_A,creaseB:BX_B,diamond:BX_B,closeB:BX_B,gusset:BX_B,open:BX_C,handles:BX_C,done:BX_C};
+function fitRegion(key){const b=BOX[key]||BOX.place,g=$('guide'),bw=b[2]-b[0],bh=b[3]-b[1],bot=H-80,rt=W-62;
+  const inSt=g&&stage.contains(g),gb=inSt?g.offsetTop+g.offsetHeight+8:14,gr=inSt?g.offsetLeft+g.offsetWidth+8:14;
+  /* option A: full width below the instruction card; option B: full height beside it */
+  const R=[[12,gb,rt,bot],[gr,14,rt,bot]].map(([l,t,r,d])=>({l,t,r,d,s:Math.min((r-l)/bw,(d-t)/bh)}));
+  const o=R[1].s>R[0].s*1.04?R[1]:R[0];return{b,o,z:Math.min(3.2,Math.max(.55,Math.max(30,o.s)/BASE)),mx:(o.l+o.r)/2,my:(o.t+o.d)/2}}
+function fitView(key){const f=fitRegion(key),sc=BASE*f.z;return[(f.b[0]+f.b[2])/2-(f.mx-W/2)/sc,(f.b[1]+f.b[3])/2-(f.my-H*OY)/sc,f.z]}
+/* close-up camera centred on a world point, inside the same free area */
+/* close-up that keeps both hands and the paper they move inside the free area */
+function handsView(key,pts){const f=fitRegion(key),pad=.42;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;pts.forEach(([x,z])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);z0=Math.min(z0,z);z1=Math.max(z1,z)});
+  x0-=pad;x1+=pad;z0-=pad*.8;z1+=pad*.9;const o=f.o,sc0=Math.min((o.r-o.l)/(x1-x0),(o.d-o.t)/(z1-z0)),z=Math.min(f.z*1.6,Math.max(f.z,sc0/BASE)),sc=BASE*z;
+  return[(x0+x1)/2-(f.mx-W/2)/sc,(z0+z1)/2-(f.my-H*OY)/sc,z]}
+function focusView(key,px,pz,mul){const f=fitRegion(key),z=Math.min(3.2,f.z*mul),sc=BASE*z;return[px-(f.mx-W/2)/sc,pz-(f.my-H*OY)/sc,z]}
+let curFrame='place';
+function frame(key){curFrame=key;if(S)S.userCam=false;camTw={f:[view.cx,view.cz,view.z],to:fitView(key),t:0}}
+function snapFrame(){const v=fitView(curFrame);view.cx=v[0];view.cz=v[1];view.z=v[2];camTw.t=1}
+function applyPace(){$('paceLbl').textContent=PACE.name;$('btnPace').title='Speed: '+PACE.name+' (click to change)'}
+applyPace();
+$('btnPace').onclick=()=>{PACE=PACES[(PACES.indexOf(PACE)+1)%PACES.length];try{localStorage.setItem('pbsim-pace',PACE.id)}catch(e){}applyPace();
+  toast('Speed: '+PACE.name,true);log('System','Speed set to '+PACE.name)};
+let followOn=true;try{followOn=localStorage.getItem('pbsim-follow')!=='0'}catch(e){}
+$('btnFollow').setAttribute('aria-pressed',followOn);
+$('btnFollow').onclick=()=>{followOn=!followOn;try{localStorage.setItem('pbsim-follow',followOn?'1':'0')}catch(e){}$('btnFollow').setAttribute('aria-pressed',followOn);
+  toast(followOn?'Close-up on: the camera zooms in and follows the hands while they work':'Close-up off: the whole sheet stays in view',true);if(!followOn&&curFrame)frame(curFrame)};
+$('btnFocus').onclick=()=>{const sm=$('simmain'),on=!sm.classList.contains('focus');sm.classList.toggle('focus',on);document.body.classList.toggle('stage-focus',on);
+  $('btnFocus').setAttribute('aria-pressed',on);$('btnFocus').title=on?'Exit full screen (Esc)':'Full screen workbench';requestAnimationFrame(()=>{resize();snapFrame()})};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('simmain').classList.contains('focus'))$('btnFocus').click()});
+new ResizeObserver(()=>{if(S)snapFrame()}).observe($('guide'));
 $('btnCenter').onclick=()=>frame(S.done?'done':STEPS[S.step].key);
-function zoomBy(f,px,py){if(px==null){px=W/2;py=H*OY}const b=toWorld(px,py);view.z=Math.min(3.2,Math.max(.55,view.z*f));const a=toWorld(px,py);view.cx+=b[0]-a[0];view.cz+=b[1]-a[1];camTw.t=1;T.headset=performance.now()}
+function zoomBy(f,px,py){if(px==null){px=W/2;py=H*OY}if(S)S.userCam=true;const b=toWorld(px,py);view.z=Math.min(3.2,Math.max(.55,view.z*f));const a=toWorld(px,py);view.cx+=b[0]-a[0];view.cz+=b[1]-a[1];camTw.t=1;T.headset=performance.now()}
 $('btnZoomIn').onclick=()=>zoomBy(1.2);$('btnZoomOut').onclick=()=>zoomBy(1/1.2);
 el.addEventListener('wheel',e=>{e.preventDefault();const r=el.getBoundingClientRect();zoomBy(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
 
@@ -903,7 +1206,7 @@ function setRustle(on){if(!AC)return;if(!rustle){const len=AC.sampleRate,buf=AC.
 $('btnSound').onclick=()=>{soundOn=!soundOn;$('btnSound').setAttribute('aria-pressed',soundOn);$('btnSound').title=soundOn?'Sound on':'Sound off';$('sndOff').hidden=soundOn;ac();if(!soundOn)setRustle(false)};
 
 /* ---------- interaction ---------- */
-const SNAP=.35;let downXY=null,lastPt=[0,0],pointerDownCam=false,panLast=null,handVis=false;const handT={x:0,z:.4,h:.2};
+const SNAP=.35;let downXY=null,lastPt=[0,0],pointerDownCam=false,panLast=null,handVis=false;const handT={x:.8,z:.4,h:.2},supT={x:-.8,z:.4};
 function curKey(){return S&&!S.done&&STEPS[S.step]?STEPS[S.step].key:null}
 function setPt(e){const r=el.getBoundingClientRect();lastPt=[e.clientX-r.left,e.clientY-r.top]}
 function inPoly(x,z,w){let c=false;for(let i=0,j=w.length-1;i<w.length;j=i++){const [xi,zi]=w[i],[xj,zj]=w[j];if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)c=!c}return c}
@@ -918,7 +1221,7 @@ function startHold(){S.holding=true}
 function stopHold(){S.holding=false}
 function autoDo(via){const key=curKey();if(!key||busy())return;S.via=via;ac();const st=STEPS[S.step];
   if(st.dur){S.autoHold=true;return}
-  if(key==='place'){S.auto=true;S.lift=.18;S.carry={x:0,z:0};S.yaw=0;sfx.pick();setTimeout(()=>{S.auto=false;S.lift=0;S.prog=1;completeStep()},800)}}
+  if(key==='place'){S.auto=true;S.lift=.18;S.carry={x:0,z:0};S.yaw=0;sfx.pick();setTimeout(()=>{S.auto=false;S.lift=0;S.prog=1;completeStep()},800*PACE.k)}}
 function startPan(e){pointerDownCam=true;panLast=[e.clientX,e.clientY];camTw.t=1;try{el.setPointerCapture(e.pointerId)}catch(_){}}
 let lastVrTap=0;
 function vrTap(e){
@@ -944,7 +1247,7 @@ el.addEventListener('pointerdown',e=>{
 });
 el.addEventListener('pointermove',e=>{
   setPt(e);T.finger=performance.now();handVis=true;
-  if(pointerDownCam&&panLast&&e.buttons){const s=SC();view.cx-=(e.clientX-panLast[0])/s;view.cz-=(e.clientY-panLast[1])/s;panLast=[e.clientX,e.clientY];T.headset=performance.now()}
+  if(pointerDownCam&&panLast&&e.buttons){if(S)S.userCam=true;const s=SC();view.cx-=(e.clientX-panLast[0])/s;view.cz-=(e.clientY-panLast[1])/s;panLast=[e.clientX,e.clientY];T.headset=performance.now()}
   const key=curKey(),hit=hitAt();S.hover=validFor(key,hit);
   const [wx,wz]=toWorld(lastPt[0],lastPt[1]);handT.x=wx;handT.z=wz;
   if(S.dragging){const rx=Math.min(1.8,Math.max(-1.8,wx-S.dragOff.x)),rz=Math.min(1.4,Math.max(-1.2,wz-S.dragOff.z)),d=Math.hypot(rx,rz);
@@ -985,17 +1288,17 @@ function ACT(){return vrText(STEPS[S.step].act)}
 /* ---------- loop ---------- */
 let lastT=performance.now();
 const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,clamp=t=>Math.min(1,Math.max(0,t)),lerp=(a,b,t)=>a+(b-a)*t,seg=(t,a,b)=>clamp((t-a)/(b-a));
-const there=t=>t<.55?ease(t/.55):1-ease((t-.55)/.45); /* fold then unfold, leaves a crease */
+const there=t=>t<.38?ease(t/.38):t<.72?1:1-ease((t-.72)/.28); /* fold, hold flat while the crease is pressed, then unfold */
 const chips={headset:$('chip-headset'),finger:$('chip-finger'),pressure:$('chip-pressure'),touch:$('chip-touch'),voice:$('chip-voice')};
 T.voice=0;
 function chip(k,on){const c=chips[k];if(c.classList.contains('active')!==on){c.classList.toggle('active',on);c.textContent=on?'Active':'Simulated'}}
 const marker=$('marker'),markLbl=$('markLbl'),pring=$('pring'),actFill=$('actFill');
-let lastSec=-1,lastPunch=0,glueAnim=0;const G={h2:.6,th2:0,bagTop:-.9};
+let lastSec=-1,lastPunch=0,glueAnim=0,HDT=1/60;const G={h2:.6,th2:0,bagTop:-.9};
 
 function drawScene(now,working){
   const s=SC();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,el.width,el.height);
   ctx.setTransform(DPR*s,0,0,DPR*s,DPR*(W/2-view.cx*s),DPR*(H*OY-view.cz*s));
-  hits=[];const key=curKey(),pulse=.5+.5*Math.sin(now/260);
+  hits=[];const key=curKey(),pulse=.5+.5*Math.sin(now/260);G.bottle=null;G.cordTip=null;G.punchPr=0;G.rollC=G.rollF=G.rollL=null;if(key!=='open'&&key!=='handles'&&!S.done)G.bag=null;
   hlParts=key?STEPS[S.step].parts:[];hlAmt=!key?0:(S.hover||working||S.dragging)?.9:pulse*.6;
   /* table + mat */
   ctx.save();ctx.shadowColor='rgba(10,25,40,.35)';ctx.shadowBlur=24*DPR;ctx.shadowOffsetY=10*DPR;ctx.drawImage(woodC,-2.8,-1.8,5.6,3.6);ctx.restore();
@@ -1004,10 +1307,10 @@ function drawScene(now,working){
   if(S.step===0){const col=S.near?'#7dff9b':'#5ff0df',a=S.near?1:.55+.45*pulse;ctx.save();ctx.globalAlpha=a;ctx.strokeStyle=col;ctx.lineWidth=2/s;ctx.setLineDash([.08,.05]);ctx.strokeRect(-1.27,-1,2.54,2);ctx.setLineDash([]);
     ctx.lineWidth=4/s;[[-1.27,-1,1,1],[1.27,-1,-1,1],[1.27,1,-1,-1],[-1.27,1,1,-1]].forEach(([x,z,sx,sz])=>{ctx.beginPath();ctx.moveTo(x+sx*.22,z);ctx.lineTo(x,z);ctx.lineTo(x,z+sz*.22);ctx.stroke()});ctx.restore()}
   /* pose values */
-  const cf=there(V('center')),th1=cf*Math.PI*.985,h1=-.53,c1=Math.cos(th1),s1=Math.sin(th1);
-  const h2=h1+1.13*c1,y2=1.13*s1,th2=th1+ease(V('flapR'))*Math.PI;G.h2=h2;G.th2=th2;
-  const thL=-ease(V('foldL'))*Math.PI,tubeOn=S.step>IDX('foldL');
-  const dT=ease(V('diamond')),cb=V('closeB'),gs=there(V('gusset'));
+  const cf=there(VP('center')),th1=cf*Math.PI*.985,h1=-.53,c1=Math.cos(th1),s1=Math.sin(th1);
+  const h2=h1+1.13*c1,y2=1.13*s1,th2=th1+ease(seg(VP('flapR'),0,.55))*Math.PI;G.h2=h2;G.th2=th2;
+  const thL=-ease(seg(VP('foldL'),0,.6))*Math.PI,tubeOn=S.step>IDX('foldL');
+  const dT=ease(VP('diamond')),cb=VP('closeB'),gs=there(VP('gusset'));
   const op=V('open'),oa=ease(seg(op,0,.68)),ob=seg(op,.7,1),hv=V('handles');
   const bagOn=oa>=.03||S.step>IDX('open');
   /* resting props */
@@ -1019,23 +1322,23 @@ function drawScene(now,working){
   if(!tubeOn&&CF.lift>.005){const w=[[-1.8,-1],[.74,-1],[.74,1],[-1.8,1]].map(p=>P(p[0],p[1]));ctx.save();ctx.translate(CF.lift*.6,CF.lift*.8);path(w);ctx.fillStyle=`rgba(10,30,25,${.12+CF.lift})`;ctx.filter='blur(6px)';ctx.fill();ctx.restore()}
   if(!tubeOn){
     /* phase A: flat sheet */
-    const drawL=()=>xPanel(-.6,0,thL,-1.2,0,-1,1,'flapL',{h:0});
+    const fL=ease(seg(VP('foldL'),0,.6)),drawL=()=>{G.rollL=rollPanel(-.6,1.2,-1,fL,-1,1,'flapL')};
     piece([[-.6,-1],[-.53,-1],[-.53,1],[-.6,1]],'sheet');
-    if(V('foldL')<=0)drawL();
-    line(-.53,-1,-.53,1,V('center')*.55,2);
-    xPanel(h1,0,th1,0,1.13,-1,1,'half');
-    xPanel(h2,y2,th2,0,.14,-1,1,'flapR',{shade:.06});
+    if(fL<=0)drawL();
+    line(-.53,-1,-.53,1,VP('center')*.55,2);
+    if(cf>.004){G.rollC=rollPanel(-.53,1.27,1,cf,-1,1,'half')}
+    else{piece([[-.53,-1],[.6,-1],[.6,1],[-.53,1]],'half');G.rollF=rollPanel(.6,.14,1,ease(seg(VP('flapR'),0,.55)),-1,1,'flapR',{shade:.06})}
     xPanel(h2,y2,th2,-.3,.34,-1.05,1.05,'flapR',{proxy:1});
-    if(V('glue')>0)xPanel(h2,y2+.002,th2,.025,.115,-.96,.96,'glue',{fill:`rgba(250,246,232,${V('glue')*.92})`,noEdge:1,shade:-.01});
-    if(V('foldL')>0)drawL();
+    if(V('glue')>0)xPanel(h2,y2+.002,th2,.025,.115,-.96,-.96+1.92*V('glue'),'glue',{fill:`rgba(250,246,232,.92)`,noEdge:1,shade:-.01});
+    if(fL>0)drawL();
   }else if(!bagOn){
     /* phase B: flat tube */
     piece([[-.4,-1],[.4,-1],[.4,.55],[-.4,.55]],'tube');line(.32,-1,.32,.55,.5,3);
     xPanel(-.4,0,-gs*Math.PI*.95,-.2,0,-1,.55,'side');xPanel(-.4,0,-gs*Math.PI*.95,-.4,.05,-1,.55,'side',{proxy:1});
     xPanel(.4,0,gs*Math.PI*.95,0,.2,-1,.55,'side');xPanel(.4,0,gs*Math.PI*.95,-.05,.4,-1,.55,'side',{proxy:1});
-    line(-.4,-1,-.4,.55,V('gusset')*.55,2);line(.4,-1,.4,.55,V('gusset')*.55,2);
-    if(dT<.98){zPanel(.55,0,-there(V('creaseB'))*Math.PI*.96,0,.45*(1-dT),-.6,.6,'bottom');zPanel(.55,0,0,-.05,.7,-.75,.75,'bottom',{proxy:1})}
-    line(-.6,.55,.6,.55,V('creaseB')*.6,2);
+    line(-.4,-1,-.4,.55,VP('gusset')*.55,2);line(.4,-1,.4,.55,VP('gusset')*.55,2);
+    if(dT<.98){zPanel(.55,0,-there(VP('creaseB'))*Math.PI*.96,0,.45*(1-dT),-.6,.6,'bottom');zPanel(.55,0,0,-.05,.7,-.75,.75,'bottom',{proxy:1})}
+    line(-.6,.55,.6,.55,VP('creaseB')*.6,2);
     if(dT>0){const sx=lerp(.6,1,dT),D=(x,z)=>[x*sx,.55+z*dT];
       piece([[-.6,0],[-.45,-.15],[.45,-.15],[.6,0],[.45,.15],[-.45,.15]].map(p=>D(p[0],p[1])),'diamond',{shade:.1});
       piece([[-.8,-.45],[.8,-.45],[.8,.45],[-.8,.45]].map(p=>D(p[0],p[1])),'diamond',{proxy:1});
@@ -1045,14 +1348,14 @@ function drawScene(now,working){
       flap(-.15,ease(seg(cb,.3,.62))*Math.PI,-1);flap(.15,ease(seg(cb,.66,1))*Math.PI,1)}
   }else{
     /* phase C: the bag standing up, front view with oblique depth */
-    const fw=lerp(1.2,.8,oa),fh=lerp(1.55,1.4,oa),zb=lerp(.55,.5,oa),zt=zb-fh,dx=.24*oa,dz=-.2*oa,x0=-fw/2,x1=fw/2;G.bagTop=zt;
+    const fw=lerp(1.2,.8,oa),fh=lerp(1.55,1.4,oa),zb=lerp(.55,.5,oa),zt=zb-fh,dx=.24*oa,dz=-.2*oa,x0=-fw/2,x1=fw/2;G.bagTop=zt;G.bag={x0,x1,zt,zb,dx,dz};
     const bump=Math.sin(Math.PI*oa)*.35,pr=0;
     piece([[x0+dx,zt+dz],[x1+dx,zt+dz],[x1+dx,zb+dz],[x0+dx,zb+dz]],'bag',{h:bump,shade:.16});
     piece([[x0,zt],[x1,zt],[x1+dx,zt+dz],[x0+dx,zt+dz]],'bag',{fill:'#4a3018',noHl:1});
     const hole=(x,z,light)=>{const p=P(x,z);ctx.beginPath();ctx.arc(p[0],p[1],.04,0,Math.PI*2);ctx.fillStyle=light?'#e9c99a':'#2a1e14';ctx.fill();ctx.lineWidth=1.5/s;ctx.strokeStyle='#2a1e14';ctx.stroke()};
     const cordPts=(ox,oz)=>crPts([[-.2,zt+.13],[-.24,zt-.08],[-.12,zt-.3],[.12,zt-.3],[.24,zt-.08],[.2,zt+.13]].map(([x,z])=>[x+ox,z+oz]),12);
     const drawCord=(i,ox,oz)=>{const t=clamp(hv*2-i);if(t<=0)return;const pts=cordPts(ox,oz),n=Math.max(2,Math.round(pts.length*t));
-      ctx.save();ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=4*DPR;ctx.shadowOffsetY=3*DPR;ctx.beginPath();pts.slice(0,n).forEach((p,k)=>{const q=P(p[0],p[1]);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])});
+      ctx.save();ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=4*DPR;ctx.shadowOffsetY=3*DPR;ctx.beginPath();pts.slice(0,n).forEach((p,k)=>{const q=P(p[0],p[1]);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])});if(t<1){const lp=pts[n-1];G.cordTip=P(lp[0],lp[1])}
       ctx.lineWidth=.034;ctx.lineCap='round';ctx.strokeStyle='#1d1a17';ctx.stroke();ctx.restore();
       [[-.2,0],[.2,pts.length-1]].forEach(([x,idx],j)=>{if(t>=1||(j===0&&t>.02)){const q=P(x+ox,zt+.13+oz);ctx.beginPath();ctx.arc(q[0],q[1],.036,0,Math.PI*2);ctx.fillStyle='#1d1a17';ctx.fill()}})};
     if(ob>.8){hole(-.2+dx,zt+dz+.13,true);hole(.2+dx,zt+dz+.13,true)}
@@ -1065,13 +1368,18 @@ function drawScene(now,working){
     if(ob>.35){hole(-.2,zt+.13);hole(.2,zt+.13)}
     drawCord(0,0,0);
     piece([[x0-.2,zt-.45],[x1+.35,zt-.45],[x1+.35,zb+.1],[x0-.2,zb+.1]],'bag',{proxy:1});
-    if(punching){const pp=P(.2,zt+.13),pr2=Math.abs(Math.sin(ob*Math.PI*4));punchProp(pp[0],pp[1],-.15,pr2,true);
+    if(punching){const pp=P(.2,zt+.13),pr2=Math.abs(Math.sin(ob*Math.PI*4));G.punchPr=pr2;punchProp(pp[0],pp[1],-.15,pr2,true);
       if(now-lastPunch>350&&pr2>.95){sfx.punch();lastPunch=now}}
   }
   /* active glue bottle */
-  if(gk){glueAnim+=1/60;const p=gk===1?P(h2+.07*Math.cos(th2),lerp(-.85,.85,(Math.sin(glueAnim*2.4)+1)/2)):P(0,.55);bottle(p[0],p[1],gk===1?.7:.5,true)}
+  if(gk){glueAnim+=1/60;const p=gk===1?P(h2+.07*Math.cos(th2),-.96+1.92*V('glue')):P(0,.55);G.bottle=[p[0],p[1],gk===1?.7:.5]}
   /* ghost hand */
-  if(handVis||S.autoHold){const grip=working||S.dragging||S.auto;handGlyph(handT.x,handT.z,grip?.05:.18,grip)}
+  foldGuides(key,working);
+  /* two virtual hands (drawn last so they sit on top of the paper) */
+  {const cur=updateHands(key,working);G.cur=cur;const active=working||S.dragging||S.auto,aL=1,aR=1;
+    const hb=()=>{if(G.bottle)bottle(G.bottle[0],G.bottle[1],G.bottle[2],true)};
+    if(cur==='R'){drawHand(HL,true,aL,'#c96f1c');drawHand(HR,false,aR,'#2a74b8');hb()}else{drawHand(HR,false,aR,'#2a74b8');hb();drawHand(HL,true,aL,'#c96f1c')}
+    contactMark(HL,'#e0a25a',working);contactMark(HR,'#3b9ee0',working)}
 }
 
 function anchorLocal(key){switch(key){
@@ -1082,7 +1390,7 @@ function anchorLocal(key){switch(key){
 function tick(){
   const now=performance.now(),dt=Math.min((now-lastT)/1000,.1);lastT=now;let key=curKey();
   if(key){const st=STEPS[S.step];
-    if((S.holding||S.autoHold)&&st.dur){S.prog=Math.min(1,S.prog+dt/st.dur);S.vals[key]=S.prog;
+    if((S.holding||S.autoHold)&&st.dur){S.prog=Math.min(1,S.prog+dt/(st.dur*PACE.k*(PHASED.includes(key)?1.25:1)));S.vals[key]=S.prog;
       if(S.prog>=1){S.holding=false;S.ptrHold=false;S.btnHold=false;S.autoHold=false;completeStep()}}
     const b=$('sb'+S.step);if(b)b.style.width=S.prog*100+'%'}
   key=curKey();
@@ -1093,9 +1401,16 @@ function tick(){
   /* carry (drag) */
   const k=1-Math.exp(-dt*14);CF.x=lerp(CF.x,S.carry.x,k);CF.z=lerp(CF.z,S.carry.z,k);CF.lift=lerp(CF.lift,S.lift,k);CF.yaw=lerp(CF.yaw,S.yaw,1-Math.exp(-dt*6));
   /* view tween */
-  if(camTw.t<1){camTw.t=Math.min(1,camTw.t+dt/1.1);const e=ease(camTw.t);view.cx=lerp(camTw.f[0],camTw.to[0],e);view.cz=lerp(camTw.f[1],camTw.to[1],e);view.z=lerp(camTw.f[2],camTw.to[2],e)}
-  if(S.autoHold&&key){const a=P(...anchorLocal(key));handT.x=lerp(handT.x,a[0],1-Math.exp(-dt*12));handT.z=lerp(handT.z,a[1],1-Math.exp(-dt*12))}
-  drawScene(now,working);
+  if(camTw.t<1){camTw.t=Math.min(1,camTw.t+dt/(1.1*Math.sqrt(PACE.k)));const e=ease(camTw.t);view.cx=lerp(camTw.f[0],camTw.to[0],e);view.cz=lerp(camTw.f[1],camTw.to[1],e);view.z=lerp(camTw.f[2],camTw.to[2],e)}
+  HDT=dt;
+  /* close-up: while a step is being performed, zoom in and track the working hand(s) */
+  {const follow=followOn&&!S.userCam&&camTw.t>=1&&working&&key&&!['place','center','flapR','glue','foldL'].includes(key);
+    if(follow){const pts=[[HL.x,HL.z],[HR.x,HR.z]],RG={creaseB:[[-.45,.05],[.45,1]],diamond:[[-.95,.25],[.95,.85]],closeB:[[-.8,.25],[.8,.85]],gusset:[[-.65,-.95],[.65,.6]]}[key];
+      if(RG)RG.forEach(q=>pts.push(P(q[0],q[1])));
+      const t=handsView(key,pts),kc=1-Math.exp(-dt*2.2*PACE.hand);
+      view.cx=lerp(view.cx,t[0],kc);view.cz=lerp(view.cz,t[1],kc);view.z=lerp(view.z,t[2],1-Math.exp(-dt*1.8*PACE.hand));G.following=true}
+    else if(G.following){G.following=false;if(!S.userCam&&camTw.t>=1&&curFrame)frame(S.done?'done':curFrame)}}
+  drawScene(now,working);showPhase(key,working);
   /* marker */
   if(key&&!working&&!S.dragging&&!S.auto){const a=P(...anchorLocal(key)),[mx,my]=toScreen(a[0],a[1]);
     if(mx>-20&&mx<W+20&&my>-20&&my<H+20){marker.hidden=false;marker.style.left=mx+'px';marker.style.top=my+'px';markLbl.textContent=vrText(STEPS[S.step].mark)}else marker.hidden=true}
