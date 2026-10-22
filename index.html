@@ -542,7 +542,7 @@ function applyMode(){document.body.classList.toggle('vr',vrMode);
   const b=$('modeBtn');if(b){b.textContent=vrMode?'One-click (VR)':'Hold & drag (desktop)';b.setAttribute('aria-pressed',vrMode)}}
 /* ---------- the 10 steps, timed against the reference video ---------- */
 /* pace for learners: slow is the default; 'very slow' for learners who need more time */
-const PACES=[{id:'vslow',name:'Very slow',k:3.2,hand:.32,voice:.62},{id:'slow',name:'Slow',k:2.3,hand:.45,voice:.72},{id:'normal',name:'Normal',k:1,hand:1,voice:.95}];
+const PACES=[{id:'vslow',name:'Very slow',k:4.6,hand:.2,voice:.6},{id:'slow',name:'Slow',k:3.4,hand:.28,voice:.66},{id:'normal',name:'Normal',k:1,hand:1,voice:.95}];
 let PACE=PACES[1];try{const sv=localStorage.getItem('pbsim-pace');const f=PACES.find(p=>p.id===sv);if(f)PACE=f}catch(e){}
 const STEPS=[
  {key:'place',type:'Position',title:'Place the sheet',guide:'Drag the kraft sheet onto the dashed outline on the cutting mat.',t:2,parts:['sheet','half','flapR','flapL'],mark:'Drag onto the outline',act:'Slide onto guide',
@@ -1028,7 +1028,7 @@ function drawHand(st,left,alpha,tint){
   ctx.drawImage(handLayer,0,0);ctx.shadowColor='transparent';
   const r=Math.max(7,Math.min(11,s*.036))*DPR;ctx.globalAlpha=.95;ctx.fillStyle=tint;ctx.beginPath();ctx.arc(bp.x,bp.y,r,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';ctx.font=`700 ${r*1.15|0}px "Source Sans 3",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(left?'L':'R',bp.x,bp.y+r*.06);ctx.restore()}
-function stepHand(h,t,rate,left){rate*=PACE.hand;const k=1-Math.exp(-HDT*rate),P0=POSE[t.pose]||POSE.open,kp=1-Math.exp(-HDT*Math.max(9*PACE.hand,rate*.8));
+function stepHand(h,t,rate,left){rate*=PACE.hand;const k=1-Math.exp(-HDT*rate),P0=POSE[t.pose]||POSE.open,kp=1-Math.exp(-HDT*Math.max(6*PACE.hand,rate*.6));
   h.x=lerp(h.x,t.x,k);h.z=lerp(h.z,t.z,k);h.h=lerp(h.h,t.h,kp);h.tw=lerp(h.tw,t.tw,kp);
   for(let i=0;i<4;i++)h.c[i]=lerp(h.c[i],P0.c[i],kp);h.sp=lerp(h.sp,P0.sp,kp);
   h.th[0]=lerp(h.th[0],P0.th[0],kp);h.th[1]=lerp(h.th[1],P0.th[1],kp);h.o[0]=lerp(h.o[0],P0.o[0],kp);h.o[1]=lerp(h.o[1],P0.o[1],kp);
@@ -1156,7 +1156,7 @@ function updateHands(key,working){
     const relax=t=>({...t,pose:t.pose==='pinch'||t.pose==='grip'||t.pose==='hold'||t.pose==='edge'?'open':t.pose,h:Math.max(t.h,.1)});
     L=relax(L);R=relax(R);const cur=c.cur==='L'?'L':'R',ch=cur==='L'?L:R;
     if(handVis){ch.x=handT.x;ch.z=handT.z;ch.pose=S.hover?'point':'open';ch.h=.16}}
-  stepHand(HL,L,active?16:(c.cur==='L'&&handVis?40:7),true);stepHand(HR,R,active?16:(c.cur==='R'&&handVis?40:7),false);
+  stepHand(HL,L,active?12:(c.cur==='L'&&handVis?40/PACE.hand*.5:6),true);stepHand(HR,R,active?12:(c.cur==='R'&&handVis?40/PACE.hand*.5:6),false);
   return c.cur}
 
 /* view tween */
