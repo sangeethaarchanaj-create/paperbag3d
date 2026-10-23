@@ -330,7 +330,7 @@ body.vr .hands{font-size:1rem}
       <button data-view="content"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5zM8 13h8v1.6H8zm0 3.5h8v1.6H8z"/></svg>Content</button>
       <button data-view="assessment"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="9" width="4" height="12" rx="1"/></svg>Assessment</button>
     </nav>
-    <div class="rail-foot">Simulation mode. 2D top view. Mouse, trackpad or touch act as finger input (drag empty space to pan, scroll to zoom); the microphone is the voice input.</div>
+    <div class="rail-foot">Simulation mode. 2D view. Mouse, trackpad or touch act as finger input (drag empty space to move the view, scroll to zoom); the microphone is the voice input.</div>
   </aside>
 
   <main>
@@ -563,9 +563,9 @@ const STEPS=[
   kw:['close the bottom','close bottom','glue the bottom','glue bottom','seal the bottom','close','flaps','centre','center'],content:'Glue the diamond and fold its top and bottom points to the centre so they overlap.'},
  {key:'gusset',type:'Fold',title:'Crease the side gussets',guide:'Press and hold on a side edge to fold the sides inward and crease them.',dur:2.4,t:212,parts:['side'],mark:'Hold to crease sides',act:'Hold: crease gussets',
   kw:['gusset','gussets','crease the sides','crease sides','side crease','fold the sides','fold sides','sides'],content:'Fold each long side inward about 2 cm and crease, so the bag can expand.'},
- {key:'open',type:'Shape',title:'Open the bag and punch holes',guide:'Press and hold on the bag to open it out, stand it up and punch two handle holes on each face.',dur:3,t:262,parts:['tube','side','bottom','diamond','bag'],mark:'Hold to open the bag',act:'Hold: open and punch',
+ {key:'open',type:'Shape',title:'Open the bag and punch holes',guide:'Press and hold on the bag. The hands open the top, stand the bag up, square the bottom and punch two handle holes.',dur:4.5,t:262,parts:['tube','side','bottom','diamond','bag'],mark:'Hold to open the bag',act:'Hold: open and punch',
   kw:['open the bag','open bag','stand','punch','hole','holes','open'],content:'Open the bag, square the bottom, then punch two holes near the top of the front and back.'},
- {key:'handles',type:'Tie',title:'Thread and knot the handles',guide:'Press and hold on the bag to thread the cord through the holes and tie a knot at each end.',dur:4,t:288,parts:['bag'],mark:'Hold to tie handles',act:'Hold: attach handles',
+ {key:'handles',type:'Tie',title:'Thread and knot the handles',guide:'Press and hold on the bag. The hands push each cord end into a hole, bring it up out of the top, tie a knot, pull it back inside, then lift the handle.',dur:14,t:288,parts:['bag'],mark:'Hold to tie handles',act:'Hold: attach handles',
   kw:['handles','handle','rope','cord','thread','knot','tie','string'],content:'Knot one cord end, thread it through both holes on one face and knot the other end. Repeat on the back.'}
 ];
 const N=STEPS.length,VID_END=414,IDX=k=>STEPS.findIndex(s=>s.key===k);
@@ -574,7 +574,7 @@ const tc=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 
 /* ---------- state ---------- */
 let S;
-function freshState(){return{step:0,prog:0,vals:{},standing:false,done:false,lift:0,carry:{x:.45,z:.6},yaw:.2,
+function freshState(){return{step:0,prog:0,vals:{},standing:false,done:false,lift:0,carry:{x:4.5,z:6},yaw:.2,
   holding:false,dragging:false,dragOff:{x:0,z:0},near:false,hover:false,auto:false,autoHold:false,ptrHold:false,btnHold:false,
   errors:0,voiceCount:0,start:performance.now(),end:0,stepStart:performance.now(),stepTimes:[],stepBy:[],log:[],saved:false,via:'touch'}}
 const T={headset:0,finger:0,touch:0};
@@ -620,7 +620,7 @@ function completeStep(){
   log('Interaction',`Learner performed action: ${st.title}${S.via==='voice'?' (voice command)':S.via==='button'?' (console button)':''}`);
   T.touch=now;try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}
   S.step++;S.prog=0;S.via='touch';S.autoHold=false;
-  if(S.step>=N){finish()}else{guidance();sfx.ok();toast('Step complete',true);frame(STEPS[S.step].key);
+  if(S.step>=N){finish();frame('done')}else{guidance();sfx.ok();toast('Step complete',true);frame(STEPS[S.step].key);
     say(`Well done. Step ${S.step+1}: ${STEPS[S.step].title}.`);if($('autoClip').checked)playChapter(S.step)}
   refreshSteps();
 }
@@ -849,192 +849,236 @@ function handleUtterance(text,src){
   error(`Wrong order by voice: said step ${m+1} (${STEPS[m].title}) during step ${S.step+1}`,`Not yet. ${STEPS[m].title} is step ${m+1}. First, step ${S.step+1}: ${cur.title}. ${cur.guide}`);
 }
 
-/* ---------- 2D scene (top-down workbench on a canvas) ---------- */
+/* ---------- 2D scene (canvas): top view of the cutting mat for steps 1-10a, front view of the bag for opening, punching and handles ---------- */
 const stage=$('stage');
-const el=document.createElement('canvas');el.setAttribute('aria-label','Workbench, top view');stage.prepend(el);
-const ctx=el.getContext('2d');
-let W=1,H=1,DPR=1,BASE=120;const OY=.56;
-const view={cx:0,cz:.15,z:1};
-const VIEW={place:[0,.15,1],center:[-.1,.05,1.05],flapR:[.8,0,1.45],glue:[.85,0,1.55],foldL:[.15,0,1.1],creaseB:[.5,.55,1.45],diamond:[.53,.55,1.75],closeB:[.53,.55,1.75],
-  gusset:[.5,-.2,1.25],open:[.55,-.25,1.15],handles:[.6,-.55,1.3],done:[.6,-.45,1.15]};
-const SC=()=>BASE*view.z;
-function toScreen(x,z){const s=SC();return[(x-view.cx)*s+W/2,(z-view.cz)*s+H*OY]}
-function toWorld(px,py){const s=SC();return[(px-W/2)/s+view.cx,(py-H*OY)/s+view.cz]}
+const el=document.createElement('canvas');el.setAttribute('aria-label','Workbench, 2D view');stage.prepend(el);
+const X=el.getContext('2d');
+let W=1,H=1,DPR=1;
 function resize(){const r=stage.getBoundingClientRect();if(!r.width||!r.height)return;W=r.width;H=r.height;DPR=Math.min(devicePixelRatio||1,2);
-  el.width=Math.round(W*DPR);el.height=Math.round(H*DPR);BASE=Math.min(W/4.3,H/3.2);if(typeof snapFrame==='function'&&typeof S!=='undefined'&&S)snapFrame()}
-new ResizeObserver(resize).observe(stage);
+  el.width=Math.round(W*DPR);el.height=Math.round(H*DPR);if(typeof S!=='undefined'&&S&&!S.userCam)snapFrame()}
+new ResizeObserver(()=>resize()).observe(stage);
 
-/* textures */
+const lerp=(a,b,t)=>a+(b-a)*t,clamp=t=>Math.min(1,Math.max(0,t)),seg=(t,a,b)=>clamp((t-a)/(b-a));
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const there=t=>t<.38?ease(t/.38):t<.72?1:1-ease((t-.72)/.28); /* fold, hold flat while the crease is pressed, then unfold */
+const smooth=t=>t*t*(3-2*t);
+const darkQ=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
+function isDark(){const t=document.documentElement.getAttribute('data-theme');return t==='dark'||(t!=='light'&&darkQ&&darkQ.matches)}
+
+/* textures (drawn once) */
 const rnd=(a,b)=>a+Math.random()*(b-a);
 function mk(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);return c}
 const woodC=mk(1024,640,(x,w,h)=>{x.fillStyle='#a8774a';x.fillRect(0,0,w,h);for(let i=0;i<180;i++){x.strokeStyle=`rgba(${rnd(60,110)|0},${rnd(35,60)|0},20,${rnd(.05,.18)})`;x.lineWidth=rnd(1,4);x.beginPath();const y=rnd(0,h);x.moveTo(0,y);for(let k=0;k<=8;k++)x.lineTo(k*w/8,y+Math.sin(k+i)*rnd(2,8));x.stroke()}});
-const MW=3.8,MD=2.5,PX=40;
-const matC=mk(MW*10*PX,MD*10*PX,(x,w,h)=>{x.fillStyle='#2c6a5c';x.fillRect(0,0,w,h);
-  for(let i=0;i<=MW*10;i++){x.strokeStyle=i%5?'rgba(220,245,235,.18)':'rgba(220,245,235,.42)';x.lineWidth=i%5?1:2;x.beginPath();x.moveTo(i*PX,0);x.lineTo(i*PX,h);x.stroke()}
-  for(let j=0;j<=MD*10;j++){x.strokeStyle=j%5?'rgba(220,245,235,.18)':'rgba(220,245,235,.42)';x.lineWidth=j%5?1:2;x.beginPath();x.moveTo(0,j*PX);x.lineTo(w,j*PX);x.stroke()}
-  x.fillStyle='rgba(230,250,240,.75)';x.font='600 16px sans-serif';for(let i=5;i<MW*10;i+=5)x.fillText(i,i*PX+4,18);x.font='600 18px sans-serif';x.fillText('SELF-HEALING MAT · cm',w-250,h-14)});
-const kraftC=mk(256,256,(x,w,h)=>{x.fillStyle='#c79a66';x.fillRect(0,0,w,h);
-  for(let i=0;i<w*h/30;i++){x.fillStyle=`rgba(${Math.random()<.5?'90,60,30':'240,215,170'},${rnd(.04,.12)})`;x.fillRect(rnd(0,w),rnd(0,h),rnd(1,2.5),rnd(1,2.5))}
-  for(let i=0;i<w*h/700;i++){x.strokeStyle='rgba(110,75,40,.13)';x.lineWidth=1;x.beginPath();const a=rnd(0,w),b=rnd(0,h);x.moveTo(a,b);x.lineTo(a+rnd(-14,14),b+rnd(-14,14));x.stroke()}});
-const kraft=ctx.createPattern(kraftC,'repeat');try{kraft.setTransform(new DOMMatrix().scale(1/300))}catch(e){}
+const MW=38,MD=25,PX=40; /* cutting mat in cm, 40 px per cm in the texture */
+const matC=mk(MW*PX,MD*PX,(x,w,h)=>{x.fillStyle='#2c6a5c';x.fillRect(0,0,w,h);
+  for(let i=0;i<=MW;i++){x.strokeStyle=i%5?'rgba(220,245,235,.18)':'rgba(220,245,235,.42)';x.lineWidth=i%5?1:2;x.beginPath();x.moveTo(i*PX,0);x.lineTo(i*PX,h);x.stroke()}
+  for(let j=0;j<=MD;j++){x.strokeStyle=j%5?'rgba(220,245,235,.18)':'rgba(220,245,235,.42)';x.lineWidth=j%5?1:2;x.beginPath();x.moveTo(0,j*PX);x.lineTo(w,j*PX);x.stroke()}
+  x.fillStyle='rgba(230,250,240,.75)';x.font='600 16px sans-serif';for(let i=5;i<MW;i+=5)x.fillText(i,i*PX+4,18);x.font='600 18px sans-serif';x.fillText('SELF-HEALING MAT · cm',w-250,h-14)});
+const grainC=mk(128,128,(x,w,h)=>{for(let i=0;i<1100;i++){x.fillStyle=`rgba(${Math.random()<.5?'90,60,30':'250,225,185'},${rnd(.05,.14).toFixed(3)})`;x.fillRect(rnd(0,w),rnd(0,h),rnd(1,2.5),rnd(1,2.5))}
+  for(let i=0;i<26;i++){x.strokeStyle='rgba(110,75,40,.12)';x.beginPath();const a=rnd(0,w),b=rnd(0,h);x.moveTo(a,b);x.lineTo(a+rnd(-14,14),b+rnd(-14,14));x.stroke()}});
 function mkPrint(){return mk(256,448,(x,w,h)=>{x.fillStyle='#12807a';x.fillRect(0,h*.07,w,h*.05);x.strokeStyle='#0e2c4a';x.lineWidth=5;x.beginPath();x.arc(w/2,h*.5,w*.19,0,Math.PI*2);x.stroke();
   x.fillStyle='#0e2c4a';x.textAlign='center';x.textBaseline='middle';x.font=`700 ${w*.12|0}px Lexend, sans-serif`;x.fillText('REC',w/2,h*.5);
   x.font=`600 ${w*.065|0}px "Source Sans 3", sans-serif`;x.fillText('VOCATIONAL LAB',w/2,h*.68);x.font=`500 ${w*.05|0}px "Source Sans 3", sans-serif`;x.fillText('handmade · kraft',w/2,h*.74)})}
 let printC=mkPrint();try{document.fonts.ready.then(()=>{printC=mkPrint()})}catch(e){}
 
-/* carry frame: the sheet is drawn in "flat-local" units (10 cm each), sheet centre at local x = -0.53 */
-const CF={x:.45,z:.6,yaw:.2,lift:0};
-function P(x,z){const s=1+CF.lift*.3,qx=(x+.53)*s,qz=z*s,c=Math.cos(CF.yaw),sn=Math.sin(CF.yaw);return[CF.x+qx*c-qz*sn,CF.z+qx*sn+qz*c]}
+const C={kraft:'#cfa16b',kraftB:'#b3844f',front:'#d6aa74',edge:'#7a5530',crease:'107,74,40',inside:'#4f351c',glue:'#fbf8ee',guide:'#2fd8c4',
+  skin:'#e6b596',skinLine:'#a8705a',nail:'#f8ddd0',cord:'#26221f',L:'#c96f1c',R:'#2a74b8'};
+let grain=null;
+function setGrain(cam){if(!grain){try{grain=X.createPattern(grainC,'repeat')}catch(e){}}
+  if(grain&&grain.setTransform){try{grain.setTransform(new DOMMatrix().scale(1.5/(cam.s*DPR)))}catch(e){}}}
 
-/* drawing primitives (ctx is in world units) */
-let hits=[],hlParts=[],hlAmt=0;
-function path(w){ctx.beginPath();w.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath()}
-function piece(pts,part,o={}){
-  const w=pts.map(p=>P(p[0],p[1]));hits.push({w,part,proxy:!!o.proxy});if(o.proxy)return w;
-  const s=SC(),h=Math.max(0,o.h||0);
-  ctx.save();ctx.shadowColor=`rgba(45,28,10,${.2+Math.min(h,.6)*.35})`;ctx.shadowBlur=(2+h*45)*DPR;ctx.shadowOffsetX=h*.3*s*DPR;ctx.shadowOffsetY=(h*.4*s+1)*DPR;
-  path(w);ctx.fillStyle=o.fill||kraft;ctx.fill();ctx.restore();
-  if(o.shade){path(w);ctx.fillStyle=o.shade>0?`rgba(70,40,12,${Math.min(.6,o.shade)})`:`rgba(255,240,210,${-o.shade})`;ctx.fill()}
-  if(!o.noEdge){path(w);ctx.lineWidth=1.1/s;ctx.strokeStyle='rgba(90,58,28,.6)';ctx.stroke()}
-  if(hlAmt>0&&hlParts.includes(part)&&!o.noHl){path(w);ctx.fillStyle=`rgba(95,240,223,${hlAmt*.28})`;ctx.fill();ctx.lineWidth=2/s;ctx.strokeStyle=`rgba(95,240,223,${.35+hlAmt*.6})`;ctx.stroke()}
-  return w}
-/* a soft fold like real paper: the free edge rolls over in a curl instead of turning as a stiff board.
-   h = final crease line, Lp = panel width, sg = +1 panel lies to the right of h, -1 to the left, f = 0..1 */
-function rollPanel(h,Lp,sg,f,z0,z1,part,o={}){
-  f=clamp(f);const xr=h+sg*Lp*(1-f),e=h+sg*Lp*(1-2*f),r=f>.004&&f<.996?.03+.075*Math.sin(Math.PI*f):0;
-  const band=(a,b,opt)=>piece([[Math.min(a,b),z0],[Math.max(a,b),z0],[Math.max(a,b),z1],[Math.min(a,b),z1]],part,opt);
-  if(Math.abs(xr-h)>.002)band(h,xr,{...o});
-  if(f>.004){
-    if(r>0){const a=P(xr,z0),b=P(xr+sg*r,z0),c=P(xr+sg*r,z1),d=P(xr,z1),sc=SC();
-      ctx.save();ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(d[0],d[1]);ctx.closePath();
-      const g=ctx.createLinearGradient(a[0],a[1],b[0],b[1]);g.addColorStop(0,'#b48a58');g.addColorStop(.5,'#dcbb8c');g.addColorStop(1,'#8c6740');
-      ctx.shadowColor='rgba(45,28,10,.32)';ctx.shadowBlur=7*DPR;ctx.shadowOffsetX=sg*r*.6*sc*DPR;ctx.fillStyle=g;ctx.fill();ctx.shadowColor='transparent';
-      ctx.lineWidth=1.1/sc;ctx.strokeStyle='rgba(90,58,28,.6)';ctx.stroke();ctx.restore();hits.push({w:[a,b,c,d],part,proxy:false})}
-    band(e,xr,{...o,h:.015+r*.5,shade:(o.shade||0)+.08})}
-  return{xr,e,r,f}}
-/* a panel hinged on a line x = h (folding over the z axis); a,b are signed distances from the hinge */
-function xPanel(h,y0,th,a,b,z0,z1,part,o={}){
-  const c=Math.cos(th),s=Math.sin(th),xa=h+a*c,xb=h+b*c,ya=y0+a*s,yb=y0+b*s,zc=(z0+z1)/2,ka=1+Math.max(0,ya)*.14,kb=1+Math.max(0,yb)*.14;
-  return piece([[xa,zc+(z0-zc)*ka],[xb,zc+(z0-zc)*kb],[xb,zc+(z1-zc)*kb],[xa,zc+(z1-zc)*ka]],part,{...o,h:o.proxy?0:Math.max(ya,yb),shade:(o.shade||0)+(c<0?.13:0)+(1-Math.abs(c))*.14})}
-/* a panel hinged on a line z = h (folding over the x axis) */
-function zPanel(h,y0,th,a,b,x0,x1,part,o={}){
-  const c=Math.cos(th),s=Math.sin(th),za=h+a*c,zb=h+b*c,ya=y0+a*s,yb=y0+b*s,xc=(x0+x1)/2,ka=1+Math.max(0,ya)*.14,kb=1+Math.max(0,yb)*.14;
-  return piece([[xc+(x0-xc)*ka,za],[xc+(x1-xc)*ka,za],[xc+(x1-xc)*kb,zb],[xc+(x0-xc)*kb,zb]],part,{...o,h:o.proxy?0:Math.max(ya,yb),shade:(o.shade||0)+(c<0?.13:0)+(1-Math.abs(c))*.14})}
-function line(x0,z0,x1,z1,a,wpx){if(a<=.01)return;const p=P(x0,z0),q=P(x1,z1);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.lineWidth=(wpx||2)/SC();ctx.strokeStyle=`rgba(80,50,20,${a})`;ctx.stroke()}
-function crPts(pts,n){const out=[];for(let i=0;i<pts.length-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
-  for(let k=0;k<n;k++){const t=k/n,t2=t*t,t3=t2*t;out.push([0,1].map(j=>.5*((2*p1[j])+(-p0[j]+p2[j])*t+(2*p0[j]-5*p1[j]+4*p2[j]-p3[j])*t2+(-p0[j]+3*p1[j]-3*p2[j]+p3[j])*t3)))}}
-  out.push(pts[pts.length-1]);return out}
+/* cameras: one for the top view, one for the front view; units are centimetres, z points down the screen */
+const CAM={top:{x:0,z:2,s:20},front:{x:0,z:-9,s:20}};
+let camTw={t:1};
+function setCam(c){X.setTransform(DPR*c.s,0,0,DPR*c.s,DPR*(W/2-c.x*c.s),DPR*(H/2-c.z*c.s))}
+function toWorld(px,py,sc){const c=CAM[sc];return[c.x+(px-W/2)/c.s,c.z+(py-H/2)/c.s]}
+function toScreen(x,z,sc){const c=CAM[sc];return[W/2+(x-c.x)*c.s,H/2+(z-c.z)*c.s]}
+function rr(x,y,w,h,r){X.beginPath();X.moveTo(x+r,y);X.arcTo(x+w,y,x+w,y+h,r);X.arcTo(x+w,y+h,x,y+h,r);X.arcTo(x,y+h,x,y,r);X.arcTo(x,y,x+w,y,r);X.closePath()}
+const R4=(x0,x1,z0,z1)=>[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];
 
-/* props */
-function bottle(tx,tz,ang,active){ctx.save();ctx.translate(tx,tz);ctx.rotate(ang);ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=(active?14:6)*DPR;ctx.shadowOffsetX=(active?10:3)*DPR;ctx.shadowOffsetY=(active?12:4)*DPR;
-  ctx.fillStyle='#9b2a5a';ctx.beginPath();ctx.roundRect?ctx.roundRect(-.09,-.46,.18,.32,.04):ctx.rect(-.09,-.46,.18,.32);ctx.fill();ctx.shadowColor='transparent';
-  ctx.fillStyle='#b7d83a';ctx.fillRect(-.09,-.2,.18,.06);ctx.fillStyle='#dddddd';ctx.beginPath();ctx.moveTo(-.05,-.14);ctx.lineTo(.05,-.14);ctx.lineTo(0,0);ctx.closePath();ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(-.06,-.44,.03,.22);ctx.restore()}
-function punchProp(tx,tz,ang,press,active){ctx.save();ctx.translate(tx,tz);ctx.rotate(ang);ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=(active?12:6)*DPR;ctx.shadowOffsetX=(active?8:3)*DPR;ctx.shadowOffsetY=(active?10:4)*DPR;
-  ctx.fillStyle='#2b4fa8';ctx.fillRect(-.06,-.14,.52,.28);ctx.shadowColor='transparent';ctx.fillStyle='#3b63c4';const k=1-press*.25;ctx.fillRect(-.02,-.1*k,.5,.2*k);
-  ctx.fillStyle='#c8ccd4';ctx.beginPath();ctx.arc(0,0,.045,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1b2f66';ctx.beginPath();ctx.arc(0,0,.02,0,Math.PI*2);ctx.fill();ctx.restore()}
-function coil(x,z){ctx.save();ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=5*DPR;ctx.shadowOffsetY=3*DPR;ctx.strokeStyle='#1d1a17';ctx.lineWidth=.04;
-  for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(x+i*.012,z-i*.01,.15-i*.02,.12-i*.015,.3,0,Math.PI*2);ctx.stroke()}ctx.restore()}
-/* ---------- two virtual hands: human-like poses + per-step choreography ---------- */
-const handLayer=document.createElement('canvas'),hctx=handLayer.getContext('2d');
-function cap(c,x0,y0,x1,y1){c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke()}
-/* finger curl (1 = straight), spread, thumb tip, and which point of the hand sits on the target */
-const POSE={
-  open: {c:[1,1,1,1],      sp:1,  th:[-.125,.19], o:[0,0]},
-  flat: {c:[1,1,1,1],      sp:.42,th:[-.07,.25],  o:[.085,.22]},
-  point:{c:[1,.47,.47,.5], sp:.9, th:[-.05,.21],  o:[0,0]},
-  pinch:{c:[.8,.56,.54,.54],sp:.8,th:[-.012,.07], o:[-.005,.05]},
-  hold: {c:[1,1,1,.96],    sp:.42,th:[-.075,.13], o:[-.068,.15]},
-  grip: {c:[.5,.44,.44,.46],sp:.85,th:[.03,.17],  o:[.085,.27]}};
-const FING=[[0,.22,0,0,.058],[.066,.205,.076,-.025,.058],[.126,.225,.144,.025,.054],[.178,.265,.206,.105,.046]];
-const SKIN='#e9c4b1',SKIN_D='#b48a76',NAIL='#fefcfa',LINE='rgba(160,112,92,.55)';
-function mkHand(x,z){return{x,z,h:.15,rot:0,tw:-.15,c:[1,1,1,1],sp:1,th:[-.125,.19],o:[0,0]}}
-const HL=mkHand(-.9,.4),HR=mkHand(.9,.4);
-/* shoulders sit off-screen below the workbench, like the person is seated at the table */
-const SHL=()=>[W*.03,H*1.5],SHR=()=>[W*.9,H*1.55];
-function handShape(c,st,pass){
-  const out=pass===0,w=out?1.36:1;c.lineCap='round';
-  c.beginPath();c.ellipse(.088,.33,.13+(out?.011:0),.14+(out?.011:0),0,0,Math.PI*2);c.fill();
-  c.lineWidth=out?.18:.16;cap(c,.085,.4,.088,.5);
-  FING.forEach(([bx,by,tx,ty,fw],i)=>{const k=st.c[i],ex=bx+(tx-bx)*st.sp,ux=(ex-bx)*k,uy=(ty-by)*k;
-    c.lineWidth=fw*w;cap(c,bx,by,bx+ux,by+uy);
-    if(!out){const an=Math.atan2(uy,ux)+Math.PI/2;
-      if(k>.78){c.save();c.fillStyle=NAIL;c.strokeStyle=LINE;c.lineWidth=.004;c.beginPath();c.ellipse(bx+ux*.9,by+uy*.9,fw*.34,fw*.46,an,0,Math.PI*2);c.fill();c.stroke();c.restore()}
-      c.save();c.strokeStyle=LINE;c.lineWidth=.005;const m=k>.78?.55:.92,cx=bx+ux*m,cy=by+uy*m,dx=Math.cos(an)*fw*.22,dy=Math.sin(an)*fw*.22;
-      cap(c,cx-dx,cy-dy,cx+dx,cy+dy);c.restore()}});
-  c.lineWidth=.066*w;cap(c,-.025,.37,st.th[0],st.th[1]);
-  if(!out){const tx=st.th[0],ty=st.th[1],an=Math.atan2(ty-.37,tx+.025)+Math.PI/2;c.save();c.fillStyle=NAIL;c.strokeStyle=LINE;c.lineWidth=.004;
-    c.beginPath();c.ellipse(-.025+(tx+.025)*.86,.37+(ty-.37)*.86,.019,.026,an,0,Math.PI*2);c.fill();c.stroke();
-    c.strokeStyle=LINE;c.lineWidth=.006;c.beginPath();c.moveTo(.0,.27);c.quadraticCurveTo(.09,.235,.19,.285);c.stroke();
-    c.beginPath();c.moveTo(.02,.44);c.quadraticCurveTo(.05,.36,.02,.3);c.stroke();c.restore()}
+/* the sheet frame follows the drag in step 1; sheet coordinates are cm from the centre of the outline */
+const CF={x:4.5,z:6,yaw:.2,lift:0};
+function P(x,z){const c=Math.cos(CF.yaw),s=Math.sin(CF.yaw);return[CF.x+x*c-z*s,CF.z+x*s+z*c]}
+const M=pts=>pts.map(q=>P(q[0],q[1]));
+const TX=5.3,HZ=-12.7; /* centre of the flat tube; height of the handle holes in the front view */
+let HITS=[],hlParts=[],hlAmt=0,badges=[],lastPunch=0,HDT=1/60;
+const G={};
+
+function pathPts(pts){X.beginPath();pts.forEach((q,i)=>i?X.lineTo(q[0],q[1]):X.moveTo(q[0],q[1]));X.closePath()}
+function line(pts,w,col){X.beginPath();pts.forEach((q,i)=>i?X.lineTo(q[0],q[1]):X.moveTo(q[0],q[1]));X.lineWidth=w;X.strokeStyle=col;X.lineCap='round';X.stroke()}
+/* a piece of kraft paper (points already in world cm); lift 0..1 lightens it and casts a shadow */
+function paper(pts,part,o={}){
+  const lift=o.lift||0;
+  if(lift>.02){X.save();X.translate(lift*1.1,lift*1.4);pathPts(pts);X.fillStyle=`rgba(40,25,10,${(.2*Math.min(1,lift)).toFixed(3)})`;X.fill();X.restore()}
+  pathPts(pts);X.fillStyle=o.color||(o.back?C.kraftB:C.kraft);X.fill();
+  if(grain){X.fillStyle=grain;X.fill()}
+  if(lift>.02&&!o.back){X.fillStyle=`rgba(255,240,215,${(.2*Math.min(1,lift)).toFixed(3)})`;X.fill()}
+  X.lineJoin='round';X.lineWidth=.08;X.strokeStyle=C.edge;X.stroke();
+  if(part&&hlParts.includes(part)&&hlAmt>0){X.save();X.lineWidth=.35;X.strokeStyle=`rgba(47,216,196,${hlAmt.toFixed(3)})`;X.stroke();X.restore()}
+  if(part)HITS.push({part,pts,sc:o.sc||'top'});
 }
-/* Hand drawn like the reference workshop file: 21 joint points (wrist, thumb, four fingers),
-   skin fill with a soft outline, white nails, knuckle creases and a forearm. Units: wrist at (0,0), fingers toward -y. */
-const TPL=[[0,0],[-.19,-.08],[-.31,-.2],[-.39,-.32],[-.45,-.42],[-.15,-.45],[-.17,-.62],[-.18,-.73],[-.19,-.83],[0,-.47],[0,-.66],[0,-.78],[0,-.88],[.13,-.44],[.15,-.61],[.16,-.71],[.17,-.8],[.24,-.38],[.28,-.5],[.3,-.58],[.32,-.65]];
-const FINGERS=[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]],FWID=[1.15,1,1.04,.96,.82];
-const HSK={skin:'#e8c6b5',line:'#c4957f',nail:'#fffaf5'};
-const HSCALE=.66;
-function buildPose(pose){
-  let p=TPL.map(([x,y])=>({x,y}));const L=(a,b,t)=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t)});
-  const curl=(f,c)=>{const m=p[FINGERS[f][0]];[.25,.55,.85].forEach((k,j)=>{const q=p[FINGERS[f][j+1]];p[FINGERS[f][j+1]]={x:m.x+(q.x-m.x)*(1-k*c),y:m.y+(q.y-m.y)*(1-k*c)}})};
-  const spread=sp=>{for(let f=1;f<5;f++)FINGERS[f].forEach((i,j)=>{if(j>0)p[i]={x:p[i].x*sp,y:p[i].y}})};
-  const thumb=(a,b,c)=>{p[2]={x:a[0],y:a[1]};p[3]={x:b[0],y:b[1]};p[4]={x:c[0],y:c[1]}};
-  let anc;
-  switch(pose){
-  case'pinch':spread(.95);p[8]=L(p[8],{x:-.25,y:-.73},.6);p[7]=L(p[7],{x:-.22,y:-.69},.35);
-    p[4]=L(p[4],{x:p[8].x+.015,y:p[8].y+.035},.92);p[3]=L(p[3],{x:-.33,y:-.47},.6);curl(2,.2);curl(3,.3);curl(4,.35);anc=L(p[4],p[8],.5);break;
-  case'point':curl(2,.85);curl(3,.85);curl(4,.85);thumb([-.25,-.25],[-.17,-.36],[-.08,-.44]);anc=p[8];break;
-  case'flat':spread(.8);thumb([-.29,-.2],[-.33,-.32],[-.33,-.43]);anc={x:0,y:-.5};break;
-  case'grip':curl(1,.75);curl(2,.8);curl(3,.8);curl(4,.8);thumb([-.27,-.22],[-.22,-.36],[-.12,-.44]);anc={x:-.02,y:-.42};break;
-  case'edge':spread(.72);thumb([-.25,-.2],[-.3,-.34],[-.31,-.48]);anc={x:-.13,y:-.6};break;
-  case'hold':spread(.8);thumb([-.25,-.22],[-.32,-.36],[-.38,-.5]);anc=p[4];break;
-  default:spread(1.05);anc=L(p[4],p[8],.5)}
-  return{lm:p,anc:{x:anc.x,y:anc.y}}}
-const POSE_LM={};const poseLM=k=>POSE_LM[k]||(POSE_LM[k]=buildPose(k));
-function handGeo(lm){const sz=Math.hypot(lm[0].x-lm[9].x,lm[0].y-lm[9].y)||1,fw=sz*.25,d={x:(lm[0].x-lm[9].x)/sz,y:(lm[0].y-lm[9].y)/sz},n={x:-d.y,y:d.x},ww=sz*.36,far={x:lm[0].x+d.x*sz*3.6,y:lm[0].y+d.y*sz*3.6};
-  return{fw,arm:[[lm[0].x+n.x*ww,lm[0].y+n.y*ww],[far.x+n.x*ww*1.25,far.y+n.y*ww*1.25],[far.x-n.x*ww*1.25,far.y-n.y*ww*1.25],[lm[0].x-n.x*ww,lm[0].y-n.y*ww]],
-    palm:[0,1,2,5,9,13,17].map(i=>[lm[i].x,lm[i].y]),d}}
-/* part: 'all' | 'body' (arm, palm, four fingers) | 'thumb' */
-function paintHand(c,lm,part){
-  const {fw,arm,palm}=handGeo(lm),ex=.014,fl=part==='thumb'?[0]:part==='body'?[1,2,3,4]:[0,1,2,3,4];
-  const shape=(e,col)=>{c.fillStyle=c.strokeStyle=col;c.lineCap='round';c.lineJoin='round';
-    const pl=pts=>{c.beginPath();pts.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath()};
-    if(part!=='thumb'){pl(arm);c.lineWidth=e*2;c.fill();if(e)c.stroke();pl(palm);c.lineWidth=fw*1.15+e*2;c.fill();c.stroke()}
-    fl.forEach(i=>{c.beginPath();FINGERS[i].forEach((k,j)=>j?c.lineTo(lm[k].x,lm[k].y):c.moveTo(lm[k].x,lm[k].y));c.lineWidth=fw*FWID[i]+e*2;c.stroke()})};
-  shape(ex,HSK.line);shape(0,HSK.skin);
-  c.strokeStyle='rgba(180,128,108,.45)';c.lineWidth=.008;
-  [6,10,14,18,7,11,15,19,3].forEach(k=>{const fi=FINGERS.findIndex(f=>f.includes(k));if(!fl.includes(fi))return;const a=lm[k-1],b=lm[k],dx=b.x-a.x,dy=b.y-a.y,Ln=Math.hypot(dx,dy)||1,nx=-dy/Ln,ny=dx/Ln,w=fw*.22;
-    c.beginPath();c.moveTo(b.x-nx*w,b.y-ny*w);c.quadraticCurveTo(b.x+dx/Ln*.012,b.y+dy/Ln*.012,b.x+nx*w,b.y+ny*w);c.stroke()});
-  [4,8,12,16,20].forEach((k,i)=>{if(!fl.includes(i))return;const a=lm[k-1],b=lm[k],an=Math.atan2(b.y-a.y,b.x-a.x),Ln=Math.hypot(b.x-a.x,b.y-a.y),o=Math.min(Ln*.25,fw*.25);
-    c.save();c.translate(b.x-Math.cos(an)*o,b.y-Math.sin(an)*o);c.rotate(an);c.beginPath();c.ellipse(0,0,fw*FWID[i]*.36,fw*FWID[i]*.27,0,0,Math.PI*2);
-    c.fillStyle=HSK.nail;c.fill();c.strokeStyle='rgba(196,149,127,.7)';c.lineWidth=.006;c.stroke();c.restore()})}
-function drawHand(st,left,alpha,tint){
-  const s=SC();if(handLayer.width!==el.width||handLayer.height!==el.height){handLayer.width=el.width;handLayer.height=el.height}
-  const c=hctx;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,handLayer.width,handLayer.height);
-  const lm=st.lm||poseLM('open').lm,anc=st.anc||poseLM('open').anc,k=HSCALE*(1+st.h*.25),under=(st.hold||0)>.5;
-  c.setTransform(ctx.getTransform());c.translate(st.x,st.z);if(left)c.scale(-1,1);c.rotate(st.rot);c.scale(k,k);c.translate(-anc.x,-anc.y);
-  const M=c.getTransform();
-  paintHand(c,lm,under?'body':'all');
-  if(under){
-    c.setTransform(ctx.getTransform());c.globalCompositeOperation='destination-out';
-    hits.forEach(hh=>{if(hh.proxy||!inPoly(st.x,st.z,hh.w))return;c.beginPath();hh.w.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.fill()});
-    c.globalCompositeOperation='source-over';c.setTransform(M);
-    c.save();c.globalAlpha=.3;c.strokeStyle=HSK.line;c.lineWidth=.01;c.setLineDash([.03,.022]);c.lineCap='round';
-    [1,2,3,4].forEach(i=>{c.beginPath();FINGERS[i].forEach((kk,j)=>j?c.lineTo(lm[kk].x,lm[kk].y):c.moveTo(lm[kk].x,lm[kk].y));c.stroke()});c.restore();
-    paintHand(c,lm,'thumb')}
-  const g=handGeo(lm),bp=M.transformPoint(new DOMPoint(lm[0].x+g.d.x*.32,lm[0].y+g.d.y*.32));
-  const sh=.06+st.h*.6;ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=alpha;
-  ctx.shadowColor='rgba(70,45,25,.22)';ctx.shadowBlur=(4+st.h*26)*DPR;ctx.shadowOffsetX=sh*s*.4*DPR;ctx.shadowOffsetY=sh*s*.55*DPR;
-  ctx.drawImage(handLayer,0,0);ctx.shadowColor='transparent';
-  const r=Math.max(7,Math.min(11,s*.036))*DPR;ctx.globalAlpha=.95;ctx.fillStyle=tint;ctx.beginPath();ctx.arc(bp.x,bp.y,r,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#fff';ctx.font=`700 ${r*1.15|0}px "Source Sans 3",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(left?'L':'R',bp.x,bp.y+r*.06);ctx.restore()}
-function stepHand(h,t,rate,left){rate*=PACE.hand;const k=1-Math.exp(-HDT*rate),P0=POSE[t.pose]||POSE.open,kp=1-Math.exp(-HDT*Math.max(6*PACE.hand,rate*.6));
-  h.x=lerp(h.x,t.x,k);h.z=lerp(h.z,t.z,k);h.h=lerp(h.h,t.h,kp);h.tw=lerp(h.tw,t.tw,kp);
-  for(let i=0;i<4;i++)h.c[i]=lerp(h.c[i],P0.c[i],kp);h.sp=lerp(h.sp,P0.sp,kp);
-  h.th[0]=lerp(h.th[0],P0.th[0],kp);h.th[1]=lerp(h.th[1],P0.th[1],kp);h.o[0]=lerp(h.o[0],P0.o[0],kp);h.o[1]=lerp(h.o[1],P0.o[1],kp);
-  const sp=left?SHL():SHR(),S=toWorld(sp[0],sp[1]),dx=h.x-S[0],dz=h.z-S[1],want=t.ra!=null?t.ra:(left?Math.atan2(-dx,-dz):Math.atan2(dx,-dz))+h.tw;
-  let d=want-h.rot;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;h.rot+=d*Math.min(1,kp*1.4);h.hold=lerp(h.hold||0,t.pose==='hold'?1:0,kp);
-  const T=poseLM(t.pose||'open');if(!h.lm){h.lm=T.lm.map(q=>({...q}));h.anc={...T.anc}}else{h.lm.forEach((q,i)=>{q.x=lerp(q.x,T.lm[i].x,kp);q.y=lerp(q.y,T.lm[i].y,kp)});h.anc.x=lerp(h.anc.x,T.anc.x,kp);h.anc.y=lerp(h.anc.y,T.anc.y,kp)}}
+function hitOnly(pts,part,sc){HITS.push({part,pts,sc:sc||'top'})}
+function inPoly(pts,x,z){let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const a=pts[i],b=pts[j];if(((a[1]>z)!==(b[1]>z))&&x<(b[0]-a[0])*(z-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
+function inBox(pts,x,z,pad){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;pts.forEach(q=>{x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);z0=Math.min(z0,q[1]);z1=Math.max(z1,q[1])});return x>=x0-pad&&x<=x1+pad&&z>=z0-pad&&z<=z1+pad}
+
+/* ---------- the flat sheet: steps 1-5 ---------- */
+function drawSheetA(){
+  if(CF.lift>.02){X.save();X.translate(CF.lift*.9,CF.lift*1.2);pathPts(M(R4(-12.7,12.7,-10,10)));X.fillStyle='rgba(30,20,10,.22)';X.fill();X.restore()}
+  const tc=there(VP('center'))*Math.PI*.985,tf=ease(seg(VP('flapR'),0,.55))*Math.PI,tl=ease(seg(VP('foldL'),0,.6))*Math.PI,gv=V('glue');
+  const left=()=>{const e=-.7-12*Math.cos(tl);paper(M(R4(Math.min(e,-.7),Math.max(e,-.7),-10,10)),'flapL',{back:Math.cos(tl)<0,lift:Math.sin(tl)})};
+  if(tl<Math.PI/2)left();
+  paper(M(R4(-.7,0,-10,10)),'sheet');
+  if(tc>.002){const e=12.7*Math.cos(tc);paper(M(R4(Math.min(0,e),Math.max(0,e),-10,10)),'half',{back:Math.cos(tc)<0,lift:Math.sin(tc)})}
+  else{
+    paper(M(R4(0,11.3,-10,10)),'half');
+    if(V('center')>0)line(M([[0,-10],[0,10]]),.1,`rgba(${C.crease},${(.55*Math.min(1,V('center')*2)).toFixed(3)})`);
+    const e=11.3+1.4*Math.cos(tf);paper(M(R4(Math.min(11.3,e),Math.max(11.3,e),-10,10)),'flapR',{back:Math.cos(tf)<0,lift:Math.sin(tf)*.5});
+    if(gv>0){const g=M(R4(10.25,10.95,-9.6,-9.6+19.2*gv));pathPts(g);X.fillStyle=C.glue;X.fill();X.strokeStyle='rgba(150,150,140,.6)';X.lineWidth=.06;X.stroke();
+      line(M([[10.45,-9.4],[10.45,-9.6+19.2*gv-.2]]),.08,'rgba(255,255,255,.9)');hitOnly(g,'glue')}
+  }
+  if(tl>=Math.PI/2)left();
+}
+/* ---------- the flat tube: steps 6-9, and the start of step 10 ---------- */
+function drawTube(){
+  const gs=there(VP('gusset'))*Math.PI*.95,cbA=there(VP('creaseB'))*Math.PI*.96,dT=ease(VP('diamond')),cb=VP('closeB');
+  const op=S.step===IDX('open')?seg(V('open'),0,.28):(S.step>IDX('open')?1:0);
+  paper(M(R4(-.7,11.3,-10,5.5)),'tube');
+  line(M([[9.9,-10],[9.9,5.5]]),.12,`rgba(${C.crease},.28)`);
+  if(dT<.02){const c=Math.cos(cbA),e=5.5+4.5*c;
+    paper(M(R4(-.7,11.3,Math.min(5.5,e),Math.max(5.5,e))),'bottom',{back:c<0,lift:Math.sin(cbA)*.6});
+    if(V('creaseB')>0)line(M([[-.7,5.5],[11.3,5.5]]),.1,`rgba(${C.crease},${(.6*V('creaseB')).toFixed(3)})`)}
+  else{
+    const H0=[[-6,2.25],[-6,0],[6,0],[6,2.25],[6,4.5],[-6,4.5]],H1=[[-9,0],[-6,-4],[6,-4],[9,0],[6,4],[-6,4]];
+    const hx=H0.map((q,i)=>[TX+lerp(q[0],H1[i][0],dT),5.5+lerp(q[1],H1[i][1],dT)]);
+    paper(M(hx),'diamond');
+    const a=seg(dT,.3,1);
+    if(a>0){X.fillStyle=`rgba(90,60,30,${(.16*a).toFixed(3)})`;pathPts(M([hx[0],hx[1],hx[5]]));X.fill();pathPts(M([hx[3],hx[2],hx[4]]));X.fill();
+      X.save();X.setLineDash([.5,.4]);const al=`rgba(${C.crease},${(.5*a).toFixed(3)})`;line(M([[TX-7.7,3.8],[TX+7.7,3.8]]),.07,al);line(M([[TX-7.7,7.2],[TX+7.7,7.2]]),.07,al);X.restore()}
+    const ga=seg(cb,0,.3)*.9*(1-.8*seg(cb,.62,1));
+    if(ga>0){X.save();X.globalAlpha*=ga;pathPts(M(R4(TX-3,TX+3,4.5,6.5)));X.fillStyle=C.glue;X.fill();X.restore()}
+    const fT=ease(seg(cb,.3,.62))*Math.PI,fB=ease(seg(cb,.66,1))*Math.PI;
+    const flap=(pts,hz,f)=>{const c=Math.cos(f);paper(M(pts.map(q=>[TX+q[0],5.5+hz+(q[1]-hz)*c])),'diamond',{back:c<0,lift:Math.sin(f)*.5})};
+    if(fT>.001)flap([[-6,-4],[6,-4],[7.725,-1.7],[-7.725,-1.7]],-1.7,fT);
+    if(fB>.001)flap([[-6,4],[6,4],[7.725,1.7],[-7.725,1.7]],1.7,fB);
+  }
+  hitOnly(M(R4(-.7,1.3,-10,1.5)),'side');hitOnly(M(R4(9.3,11.3,-10,1.5)),'side');
+  if(gs>.001){const c=Math.cos(gs),l=Math.sin(gs)*.5,eL=1.3-2*c,eR=9.3+2*c;
+    paper(M(R4(Math.min(eL,1.3),Math.max(eL,1.3),-10,1.5)),'side',{back:c<0,lift:l});
+    paper(M(R4(Math.min(eR,9.3),Math.max(eR,9.3),-10,1.5)),'side',{back:c<0,lift:l})}
+  if(V('gusset')>0){const al=`rgba(${C.crease},${(.55*V('gusset')).toFixed(3)})`;line(M([[1.3,-10],[1.3,1.5]]),.1,al);line(M([[9.3,-10],[9.3,1.5]]),.1,al)}
+  if(op>0){const c0=P(TX,-10);X.beginPath();X.ellipse(c0[0],c0[1],6,2.6*op,CF.yaw,0,Math.PI);X.closePath();X.fillStyle=C.inside;X.fill();
+    X.beginPath();X.ellipse(c0[0],c0[1],6,2.6*op,CF.yaw,0,Math.PI);X.strokeStyle=C.edge;X.lineWidth=.12;X.stroke()}
+}
+
+/* ---------- props ---------- */
+function bottle(tip,ax){X.save();X.translate(tip[0],tip[1]);X.rotate(Math.atan2(-ax[0],ax[1]));
+  X.fillStyle='rgba(20,12,6,.18)';rr(-.4,2.8,2.1,4.3,.55);X.fill();
+  X.fillStyle='#ececec';X.beginPath();X.moveTo(-.12,0);X.lineTo(.12,0);X.lineTo(.42,1.5);X.lineTo(-.42,1.5);X.closePath();X.fill();
+  X.fillStyle='#9acd32';rr(-.72,1.4,1.44,.9,.25);X.fill();
+  X.fillStyle='#b3245e';rr(-1.05,2.2,2.1,4.3,.55);X.fill();
+  X.fillStyle='#f6e6ee';X.fillRect(-1.05,3.4,2.1,1.5);X.fillStyle='rgba(255,255,255,.25)';X.fillRect(-.75,2.5,.35,3.6);X.restore()}
+function standBottle(x,z){X.fillStyle='rgba(20,12,6,.2)';X.beginPath();X.arc(x+.5,z+.7,1.1,0,7);X.fill();
+  X.fillStyle='#b3245e';X.beginPath();X.arc(x,z,1.05,0,7);X.fill();X.fillStyle='#9acd32';X.beginPath();X.arc(x,z,.7,0,7);X.fill();X.fillStyle='#ececec';X.beginPath();X.arc(x,z,.25,0,7);X.fill()}
+function punchTop(x,z){X.fillStyle='rgba(20,12,6,.2)';rr(x-2.2,z-.6,5,2,.4);X.fill();X.fillStyle='#2b56c4';rr(x-2.5,z-1,5,2,.4);X.fill();X.fillStyle='#3d6ee0';rr(x-2.3,z-.6,4.4,1.2,.3);X.fill();X.fillStyle='#c8ccd4';X.beginPath();X.arc(x-1.8,z,.4,0,7);X.fill()}
+function coilTop(x,z){X.lineWidth=.38;X.strokeStyle=C.cord;[1.5,1.2,.9].forEach((r,i)=>{X.beginPath();X.arc(x+i*.12,z-i*.1,r,0,7);X.stroke()})}
+function coilFront(x,z){X.lineWidth=.32;X.strokeStyle=C.cord;for(let i=0;i<3;i++){X.beginPath();X.ellipse(x,z-i*.32,1.6-i*.15,.45,0,0,7);X.stroke()}}
+function punchFront(x,z){X.fillStyle='#2b56c4';rr(x-1.6,z-.9,3.2,1.1,.3);X.fill();X.fillStyle='#3d6ee0';rr(x-1.6,z-1.4,3.4,.5,.25);X.fill()}
+function punchActive(p){X.save();X.fillStyle='rgba(0,0,0,.18)';rr(p.hx-1.2,-15.3,3,4.2,.5);X.fill();
+  X.fillStyle='#2b56c4';rr(p.hx-1.5,-15.6,3,4.2,.5);X.fill();X.fillStyle='#c8ccd4';X.beginPath();X.arc(p.hx,HZ,.5,0,7);X.fill();
+  X.translate(p.hx-1.5,-15.6);X.rotate(p.a);X.fillStyle='#3d6ee0';rr(0,-.9,5.6,.9,.4);X.fill();X.restore()}
+function cordPath(pts){X.beginPath();X.moveTo(pts[0][0],pts[0][1]);if(pts.length===2){X.lineTo(pts[1][0],pts[1][1]);return}
+  for(let i=1;i<pts.length-1;i++){const last=i===pts.length-2,m=last?pts[i+1]:[(pts[i][0]+pts[i+1][0])/2,(pts[i][1]+pts[i+1][1])/2];X.quadraticCurveTo(pts[i][0],pts[i][1],m[0],m[1])}}
+function cordLine(pts,back){if(!pts||pts.length<2)return;X.save();X.lineCap=X.lineJoin='round';cordPath(pts);X.strokeStyle=back?'#3d352d':C.cord;X.lineWidth=.42;X.stroke();
+  cordPath(pts);X.strokeStyle='rgba(255,255,255,.16)';X.lineWidth=.12;X.stroke();X.restore()}
+
+/* ---------- threading the handles (front view), as in the reference video ---------- */
+function cordState(hv,dx,dz){
+  const out={front:null,ups:[],back:null,knots:[],loop:null};G.hc=null;
+  if(hv<=0)return out;
+  const restA=[10.4,-.5],restB=[12.6,-.4],u=seg(hv,0,.8),lift=smooth(seg(u,.8,1));
+  const L2=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t)],qb=(a,b,c,t)=>{const m=1-t;return[m*m*a[0]+2*m*t*b[0]+t*t*c[0],m*m*a[1]+2*m*t*b[1]+t*t*c[1]]};
+  function endState(x,ue,rest){const hole=[x,HZ],rim=[x+dx*.5,-14+dz*.5],top=[x+dx*.5,-17.4+dz*.5],b0={hole,rim};
+    const a=seg(ue,0,.275),b=seg(ue,.275,.5),c=seg(ue,.5,.8),dd=seg(ue,.8,1);
+    if(ue<=0)return{...b0,p:rest,st:-1,t:0,vis:true};
+    if(a<1){if(a<.75)return{...b0,p:qb(rest,[(rest[0]+x)/2,-9],hole,smooth(a/.75)),st:0,t:a,vis:true};return{...b0,p:hole,st:0,t:a,vis:false,inH:true}}
+    if(b<1)return b<.4?{...b0,p:L2(hole,rim,smooth(b/.4)),st:1,t:b,vis:false,inH:true}:{...b0,p:L2(rim,top,smooth((b-.4)/.6)),st:1,t:b,vis:true,up:true,inH:true};
+    if(c<1)return{...b0,p:top,st:2,t:c,vis:true,up:true,inH:true};
+    if(dd<.6)return{...b0,p:L2(top,rim,smooth(dd/.6)),st:3,t:dd,vis:true,up:true,inH:true};
+    return{...b0,p:L2(rim,hole,smooth((dd-.6)/.4)),st:dd>=1?4:3,t:dd,vis:false,inH:true}}
+  const A=endState(-2,seg(u,0,.4),restA),B=endState(2,seg(u,.4,.8),restB);
+  const hang=[[-2.7,-9.8],[0,-7.8],[2.7,-9.8]],arc=[[-2.9,-17.2],[0,-19.8],[2.9,-17.2]];
+  if(A.inH&&B.inH)out.front=[A.hole,...hang.map((q,i)=>L2(q,arc[i],lift)),B.hole];
+  else if(A.inH)out.front=[A.hole,[-1.4,-6.6],[1.6,-1],B.p];
+  else out.front=[A.p,[(A.p[0]+B.p[0])/2,Math.min(-.3,(A.p[1]+B.p[1])/2+1.2)],B.p];
+  [A,B].forEach(E=>{if(E.up)out.ups.push([E.rim,E.p]);
+    if(E.st>=2&&E.vis){const s=E.st===2?smooth(seg(E.t,.55,1)):1;if(s>0)out.knots.push({p:E.p,s})}
+    if(E.st===2&&E.t<.9)out.loop={p:[E.p[0],E.p[1]-.5],r:.8*(1-E.t)+.25}});
+  const w=seg(hv,.82,1);
+  if(w>0){const bl=smooth(seg(w,.45,1)),grow=seg(w,0,.45),o=q=>[q[0]+dx,q[1]+dz];
+    const pts=[o([-2,HZ]),...hang.map((q,i)=>o(L2(q,arc[i],bl))),o([2,HZ])];out.back=pts.slice(0,Math.max(2,Math.round(pts.length*grow)))}
+  /* hand targets for this step (front view) */
+  const UP=Math.PI/2,F=(p,pose,ra,lf)=>({x:p[0],z:p[1],pose,ra,lift:lf||0,f:1}),holdL=F([-6.6,-6],'flat',UP);
+  if(w>0){const bl2=smooth(seg(w,.45,1));G.hc={cur:'R',L:holdL,R:w<.45?F([2.2+dx,-14.3+dz],'pinch'):F([.6+dx,lerp(-8,-19.8,bl2)+dz],'pinch')};return out}
+  if(u>=.8){G.hc={cur:'R',L:holdL,R:F([.6,lerp(-7.8,-19.8,lift)],'pinch')};return out}
+  const E=u<.4?A:B,x=u<.4?-2:2;
+  if(E.st<=0)G.hc={cur:'R',L:holdL,R:F(E.p,'pinch')};
+  else if(E.st===1)G.hc={cur:'R',L:holdL,R:F(E.vis?E.p:E.rim,'pinch')};
+  else if(E.st===2){const t=performance.now()/300;G.hc={cur:'R',L:F([E.p[0]-1.1,E.p[1]+.4],'pinch'),R:F([E.p[0]+.7+.4*Math.cos(t),E.p[1]+.4*Math.sin(t)],'pinch')}}
+  else G.hc={cur:'R',L:F([x,HZ+1.4],'pinch'),R:F(E.vis?E.p:E.rim,'pinch')};
+  return out}
+
+function bagGeo(){const o=IDX('open'),after=S.done||S.step>o,v=after?1:(S.step===o?V('open'):0);
+  const stand=after?1:ease(seg(v,.3,.5)),d=after?4:lerp(.5,4,ease(seg(v,.48,.68))),ob=after?1:seg(v,.7,1);
+  return{v,after,stand,d,dx:d*.55,dz:-d*.45,ob}}
+function frontAmt(){if(S.done)return 1;const o=IDX('open');if(S.step>o)return 1;if(S.step<o)return 0;return smooth(seg(V('open'),.27,.4))}
+function activeSc(){return frontAmt()>.5?'front':'top'}
+
+function updateProps(key,working,now){
+  G.bottle=null;G.bottleGrip=null;
+  if(key==='glue'&&working)G.bottle={tip:P(10.6,Math.min(9.6,-9.6+19.2*V('glue'))),ax:[.53,.85]};
+  else if(key==='closeB'&&working&&VP('closeB')<.3)G.bottle={tip:P(TX+2.5*Math.sin(now/600),5.5),ax:[.53,.85]};
+  if(G.bottle)G.bottleGrip=[G.bottle.tip[0]+G.bottle.ax[0]*4.4,G.bottle.tip[1]+G.bottle.ax[1]*4.4];
+  const g=bagGeo();G.punch=null;G.punchGrip=null;
+  if(key==='open'&&g.ob>0&&g.ob<1){const hx=g.ob<.5?-2:2,ph=Math.abs(Math.sin(g.ob*Math.PI*4)),a=-(1-ph)*.35;G.punch={hx,ph,a};
+    G.punchGrip=[hx-1.5+4.8*Math.cos(a),-16+4.8*Math.sin(a)];
+    if(now-lastPunch>350&&ph>.95){sfx.punch();lastPunch=now}}
+  const hv=S.done||S.step>IDX('handles')?1:key==='handles'?V('handles'):0;
+  G.cord=cordState(hv,g.dx,g.dz)}
+
+/* ---------- two 2D hands (seen from above, back of the hand), with coloured sleeves: L orange, R blue ---------- */
+const FING=[[-2.7,-3.9,6.8,1.75],[-.9,-4.4,7.6,1.82],[.95,-4.2,7.1,1.72],[2.75,-3.6,5.6,1.5]],THB=[-3.6,-.5,6.2,1.95],HS=.62;
+const tipAt=(b,a,e)=>[b[0]+Math.sin(a)*b[2]*e,b[1]-Math.cos(a)*b[2]*e];
+/* per pose: [angle, extension] for index..pinky, then thumb, then the anchor point that touches the target */
+const PR={open:[-.32,1,-.1,1,.12,1,.36,1,-1.05,1],flat:[-.06,1,0,1,.05,1,.1,1,-.5,.92],edge:[-.06,1,0,1,.05,1,.1,1,-.62,.95],hold:[-.08,.82,0,.82,.06,.8,.12,.78,-.75,.9],
+  point:[-.04,1,.02,.3,.05,.28,.08,.28,.2,.5],pinch:[.35,.5,.05,.38,.06,.36,.1,.34,.3,1.08],grip:[0,.3,.02,.28,.05,.28,.08,.26,.2,.6]};
+const POSE={};for(const k in PR){const a=PR[k];let anc;
+  if(k==='point')anc=tipAt(FING[0],a[0],a[1]);else if(k==='pinch'){const i=tipAt(FING[0],a[0],a[1]),t=tipAt(THB,a[8],a[9]);anc=[(i[0]+t[0])/2,(i[1]+t[1])/2]}
+  else if(k==='grip')anc=[0,-4.6];else anc=[0,-6.5];POSE[k]=a.concat(anc)}
+function mkHand(x,z){return{x,z,lift:1,rot:0,p:POSE.open.slice(),sc:'top'}}
+const HL=mkHand(-14,16),HR=mkHand(14,16);
+const SHO={top:[[-20,32],[20,32]],front:[[-20,20],[20,20]]};
+function handPath(p,shadow,left){
+  const passes=shadow?[[shadow,0]]:[[C.skinLine,.3],[C.skin,0]];
+  for(const [col,ext] of passes){X.fillStyle=X.strokeStyle=col;X.lineCap='round';X.lineJoin='round';
+    X.beginPath();X.moveTo(-3.1,2.5);X.lineTo(-3.7,44);X.lineTo(3.7,44);X.lineTo(3.1,2.5);X.closePath();X.fill();if(ext){X.lineWidth=ext;X.stroke()}
+    rr(-4.1,-5,8.2,9.3,3.2);X.fill();if(ext){X.lineWidth=ext;X.stroke()}
+    X.lineWidth=2.6+ext;X.beginPath();X.moveTo(-2.4,2.2);X.lineTo(THB[0],THB[1]);X.stroke();
+    FING.forEach((b,i)=>{const t=tipAt(b,p[i*2],p[i*2+1]);X.lineWidth=b[3]+ext;X.beginPath();X.moveTo(b[0],b[1]);X.lineTo(t[0],t[1]);X.stroke()});
+    const tt=tipAt(THB,p[8],p[9]);X.lineWidth=THB[3]+ext;X.beginPath();X.moveTo(THB[0],THB[1]);X.lineTo(tt[0],tt[1]);X.stroke()}
+  if(shadow)return;
+  X.fillStyle=C.nail;[...FING.map((b,i)=>[b,p[i*2],p[i*2+1]]),[THB,p[8],p[9]]].forEach(([b,a,e])=>{if(e<.62)return;const t=tipAt(b,a,e);
+    X.save();X.translate(t[0]-Math.sin(a)*.4,t[1]+Math.cos(a)*.4);X.rotate(a);X.beginPath();X.ellipse(0,0,b[3]*.3,b[3]*.38,0,0,7);X.fill();X.restore()});
+  X.strokeStyle='rgba(168,112,90,.45)';X.lineWidth=.12;[[-2.7,-3.4],[-.9,-3.9],[.95,-3.7],[2.75,-3.1]].forEach(q=>{X.beginPath();X.arc(q[0],q[1],.5,Math.PI*1.15,Math.PI*1.85);X.stroke()});
+  X.fillStyle=left?C.L:C.R;X.fillRect(-4.4,11,8.8,33);X.fillStyle='rgba(0,0,0,.2)';X.fillRect(-4.4,11,8.8,1.4)}
+function handDraw(h,left){const p=h.p,sc=HS*(1+h.lift*.05);
+  X.save();X.translate(h.x+.5+h.lift*1.1,h.z+.7+h.lift*1.4);X.rotate(h.rot);X.scale(left?-sc:sc,sc);X.translate(-p[10],-p[11]);handPath(p,`rgba(20,12,6,${(.2-Math.min(.1,h.lift*.025)).toFixed(3)})`);X.restore();
+  X.save();X.translate(h.x,h.z);X.rotate(h.rot);X.scale(left?-sc:sc,sc);X.translate(-p[10],-p[11]);handPath(p,null,left);
+  const q=X.getTransform().transformPoint(new DOMPoint(0,17));badges.push({x:q.x,y:q.y,t:left?'L':'R',c:left?C.L:C.R,a:X.globalAlpha});X.restore()}
+function drawHands(sc,working,now){
+  [[HL,true],[HR,false]].forEach(([h,l])=>{if(h.sc===sc)handDraw(h,l)});
+  if(!working)return;const pul=.5+.5*Math.sin(now/220);
+  [[HL,'#e0a25a'],[HR,'#4aa3dc']].forEach(([h,c])=>{if(h.sc!==sc||h.lift>.8)return;X.save();X.globalAlpha*=.45+.4*pul;X.strokeStyle=c;X.lineWidth=.24;X.beginPath();X.arc(h.x,h.z,.9*(1+.25*pul),0,7);X.stroke();X.restore()})}
+
 /* What each hand is doing in every step, in plain words for the learner */
 const HAND_TXT={
   place:['Holds the left edge: thumb on top, fingers under the sheet','Holds the right edge the same way; both hands slide the sheet onto the outline'],
@@ -1042,64 +1086,52 @@ const HAND_TXT={
   flapR:['Presses the sheet flat with fingers spread','Lies along the narrow strip, rolls it over, then runs the index finger down the crease'],
   glue:['Presses the sheet flat so it does not slide','Holds the glue bottle and draws one line from top to bottom'],
   foldL:['Lies flat along the left edge, lifts it and rolls the wide panel over onto the glue','Presses the sheet flat, moves away as the panel lands, then runs the index finger down the seam'],
-  creaseB:['Pinches the left corner and folds the strip up','Pinches the right corner; both index fingers crease from the middle outward, then it is opened again'],
-  diamond:['Pulls the left corner out','Pulls the right corner out so the bottom flattens into a diamond'],
+  creaseB:['Lies flat along the bottom edge, then lifts the left corner and folds the strip up','Does the same at the right corner; both index fingers crease from the middle outward, then the strip is opened again'],
+  diamond:['Lies flat on the left corner and pulls it out','Lies flat on the right corner and pulls it out, so the bottom flattens into a diamond'],
   closeB:['Holds the bottom down with a finger','Applies glue, folds the top and bottom points in with the index finger, then both hands press'],
-  gusset:['Pushes the left side inward and runs a finger down the crease','Pushes the right side inward and runs a finger down the crease'],
-  open:['Opens the left side, then holds the bag','Opens the right side, then squeezes the punch for the holes'],
-  handles:['Holds the bag steady','Threads the cord through the holes and pulls it through']};
-function supportLocal(key){return[0,0]}
-const GT=()=>G.bag||{x0:-.4,x1:.4,zt:-1,zb:.55,dx:0,dz:0};
-/* target pose for both hands from the live paper geometry; coordinates in sheet space unless w:1 */
-/* target pose for both hands from the live paper geometry; coordinates in sheet space unless w:1.
-   Pattern from the reference video: one hand presses flat and holds, the other lifts, rolls, pinches,
-   or runs the index finger along the crease. tw = small wrist twist relative to the forearm. */
+  gusset:['Lies along the left edge, lifts it and folds it inward, then runs a finger down the crease','Lies along the right edge, lifts it and folds it inward, then runs a finger down the crease'],
+  open:['Lifts the top edge to open the bag, then holds it upright','Holds the bag flat, helps stand it up, then squeezes the punch at each hole'],
+  handles:['Holds the bag steady, helps tie each knot, then lifts the handle','Pushes each cord end into a hole, brings it out of the top, ties the knot and pulls it back inside']};
+
+/* Target pose for both hands. Plain targets are in sheet cm; w:1 = top-view world cm; f:1 = front-view cm. */
 function chore(key,vo){
-  const v=vo!=null?vo:key?VP(key):0,E=(x,z,h,pose,tw,w)=>({x,z,h,pose,tw:tw==null?-.15:tw,w}),HO=(x,z,h,ra)=>({x,z,h,pose:'hold',tw:0,ra}),EG=(x,z,h,ra,pose)=>({x,z,h,pose:pose||'edge',tw:0,ra});
+  const v=vo!=null?vo:key?VP(key):0,T=(x,z,pose,lift,ra)=>({x,z,pose,lift:lift||0,ra});
   switch(key){
-  case'place':return{cur:'R',L:HO(-1.76,.55,CF.lift+.04,0),R:HO(.7,.55,CF.lift+.04,0)};
-  /* carrying an edge: grip it thumb-on-top, then keep pinching the edge while it is lifted, turned over and laid down.
-     The hand never lets go of the edge until it has landed on its target. */
-  /* Edge folds, as in the reference video: the folding hand lies flat along the edge (fingers up, thumb tucked at the edge),
-     rides on top of the paper as it rolls over and lays it down; the other hand presses flat with fingers spread. */
-  case'center':{const rl=G.rollC||{f:0,e:.74,xr:.74},f=rl.f,up=.04+.2*Math.sin(Math.PI*f);
-    const ride=EG(f<.02?rl.e-.06:(rl.e+rl.xr)/2-.02,.35,up,-.2-.15*Math.sin(Math.PI*f));
-    if(v<.38)return{cur:'R',L:EG(-1.3,-.15,.02,-.35,'open'),R:ride};
-    if(v<.47)return{cur:'R',L:EG(-1.5,-.7,.02,-.3,'flat'),R:EG(-1.3,.55,.02,-.15,'flat')};              /* press the corners together */
-    if(v<.72)return{cur:'R',L:EG(-1.3,-.1,.02,-.3,'flat'),R:E(-.56,lerp(-.8,.85,seg(v,.47,.7)),.02,'point',-.1)}; /* index finger down the fold */
-    return{cur:'R',L:EG(-1.3,-.15,.02,-.35,'open'),R:ride}}
-  case'flapR':{const rl=G.rollF||{f:0,e:.74,xr:.74},f=rl.f,L=EG(-.25,.1,.02,-.35,'open');
-    if(v<.55)return{cur:'R',L,R:EG(f<.02?rl.e-.05:(rl.e+rl.xr)/2-.01,.35,.04+.08*Math.sin(Math.PI*f),-.2)};
-    return{cur:'R',L,R:E(.6,lerp(-.82,.85,seg(v,.58,1)),.02,'point',-.1)}}
-  case'glue':{const R=G.bottle?E(...gripOnBottle(),.06,'grip',.25,1):E(G.h2+.22,.5,.12,'open');
-    return{cur:'R',L:EG(-.35,.15,.02,-.35,'open'),R}}
-  case'foldL':{const rl=G.rollL||{f:0,e:-1.8,xr:-1.8},f=rl.f;
-    if(v<.6){const L=EG(f<.02?rl.e+.06:(rl.e+rl.xr)/2+.02,.35,.04+.2*Math.sin(Math.PI*f),-.2-.15*Math.sin(Math.PI*f));
-      return{cur:'L',L,R:f<.6?EG(.25,-.1,.02,-.35,'open'):EG(1.05,-.1,.05,-.35,'open')}}
-    if(v<.68)return{cur:'L',L:EG(.45,.45,.02,-.2,'flat'),R:EG(.45,-.45,.02,-.3,'flat')};
-    return{cur:'R',L:EG(-.05,.1,.02,-.35,'open'),R:E(.55,lerp(-.82,.85,seg(v,.68,1)),.02,'point',-.1)}}
-  case'creaseB':{const a=there(v)*Math.PI*.96,ez=.55+.45*Math.cos(a),lift=.45*Math.abs(Math.sin(a)),flip=Math.cos(a)<.75;
-    if(v<.38||v>.72){if(!flip)return{cur:'R',L:HO(-.5,ez-.04,lift*.45+.04,0),R:HO(.5,ez-.04,lift*.45+.04,0)};
-      return{cur:'R',L:E(-.5,ez+.01,lift*.45+.05,'pinch',-.3),R:E(.5,ez+.01,lift*.45+.05,'pinch',-.3)}}
-    const t=seg(v,.4,.66);return{cur:'R',L:E(lerp(-.05,-.5,t),.56,.02,'point',-.2),R:E(lerp(.05,.5,t),.56,.02,'point',-.2)}}
-  case'diamond':{const sx=lerp(.6,1,ease(v));return{cur:'R',L:E(-.6*sx-.01,.55,.05,'pinch',-.55),R:E(.6*sx+.01,.55,.05,'pinch',-.55)}}
-  case'closeB':{const L=E(-.3,.42,.02,'point',-.25);
-    if(v<.3)return{cur:'R',L,R:G.bottle?E(...gripOnBottle(),.06,'grip',.25,1):E(.4,.8,.12,'open')};
-    if(v>.95)return{cur:'R',L:E(-.2,.5,.02,'flat',-.1),R:E(.2,.5,.02,'flat',-.1)};
-    let tz,lift;if(v<.64){const f=ease(seg(v,.3,.62))*Math.PI;tz=.4-.15*Math.cos(f);lift=.15*Math.sin(f)}else{const f=ease(seg(v,.66,1))*Math.PI;tz=.7+.15*Math.cos(f);lift=.15*Math.sin(f)}
-    return{cur:'R',L,R:E(.02,tz,lift*.6+.03,'point',-.2)}}
-  case'gusset':{const a=there(v)*Math.PI*.95,lift=.2*Math.sin(a),sw=seg(v,.4,.68);
-    if(v>.38&&v<.72)return{cur:'R',L:E(-.4,lerp(-.85,.45,sw),.02,'point',-.1),R:E(.4,lerp(-.85,.45,sw),.02,'point',-.1)};
-    if(Math.cos(a)>.75)return{cur:'R',L:HO(-.4-.2*Math.cos(a)+.035,-.1,lift*.5+.04,0),R:HO(.4+.2*Math.cos(a)-.035,-.1,lift*.5+.04,0)};
-    return{cur:'R',L:E(-.4-.2*Math.cos(a),-.1,lift*.5+.05,'pinch',-.4),R:E(.4+.2*Math.cos(a),-.1,lift*.5+.05,'pinch',-.4)}}
-  case'open':{const b=GT(),ob=seg(v,.7,1),mz=(b.zt+b.zb)/2;
-    if(ob<=0)return{cur:'R',L:E(b.x0-.03,mz+.2,.08,'grip',-.5),R:E(b.x1+b.dx+.03,mz+.2+b.dz,.08,'grip',-.5)};
-    const pp=P(.2,b.zt+.13),q=[pp[0]+.24*Math.cos(-.15),pp[1]+.24*Math.sin(-.15)];
-    return{cur:'R',L:E(-.25,b.zt+.7,.02,'flat',-.1),R:E(q[0],q[1],.05-(G.punchPr||0)*.03,'grip',.2,1)}}
-  case'handles':{const b=GT();return{cur:'R',L:E(-.25,b.zt+.7,.02,'flat',-.1),
-    R:G.cordTip?E(G.cordTip[0],G.cordTip[1],.06,'pinch',-.3,1):E(.2,b.zt+.13,.12,'open')}}
+  case'place':return{cur:'R',L:T(-12.2,4.5,'hold'),R:T(12.2,4.5,'hold')};
+  case'center':{const th=there(v)*Math.PI*.985,carry=th<.06?T(12.1,3.5,'edge'):T(12.7*Math.cos(th),3.5,'pinch',Math.sin(th)*4);
+    if(v<.38)return{cur:'R',L:T(-7.7,-1.5,'open'),R:carry};
+    if(v<.47)return{cur:'R',L:T(-9.7,-7,'flat'),R:T(-7.7,5.5,'flat')};
+    if(v<.72)return{cur:'R',L:T(-7.7,-1,'flat'),R:T(-.3,lerp(-8,8.5,seg(v,.47,.7)),'point')};
+    return{cur:'R',L:T(-7.7,-1.5,'open'),R:carry}}
+  case'flapR':{const th=ease(seg(v,0,.55))*Math.PI,L=T(2.8,1,'open');
+    if(v<.55)return{cur:'R',L,R:th<.08?T(12.2,3.5,'edge'):T(11.3+1.4*Math.cos(th),3.5,'pinch',Math.sin(th)*1.2)};
+    return{cur:'R',L,R:T(11.2,lerp(-8.2,8.5,seg(v,.58,1)),'point')}}
+  case'glue':return{cur:'R',L:T(1.8,1.5,'open'),R:G.bottleGrip?{x:G.bottleGrip[0],z:G.bottleGrip[1],pose:'grip',lift:1.5,w:1}:T(16,5,'open',1.2)};
+  case'foldL':{const th=ease(seg(v,0,.6))*Math.PI;
+    if(v<.6)return{cur:'L',L:th<.06?T(-12.2,3.5,'edge'):T(-.7-12*Math.cos(th),3.5,'pinch',Math.sin(th)*4),R:th<1.8?T(7.8,-1,'open'):T(16.8,-1,'open',.6)};
+    if(v<.68)return{cur:'L',L:T(9.8,4.5,'flat'),R:T(9.8,-4.5,'flat')};
+    return{cur:'R',L:T(4.8,1,'open'),R:T(10.8,lerp(-8.2,8.5,seg(v,.68,1)),'point')}}
+  case'creaseB':{const a=there(v)*Math.PI*.96,ez=5.5+4.5*Math.cos(a),lf=2.2*Math.sin(a);
+    if(v<.38||v>.72){if(a<.08)return{cur:'R',L:T(TX-4.2,9.2,'edge'),R:T(TX+4.2,9.2,'edge')};return{cur:'R',L:T(TX-4.5,ez,'pinch',lf),R:T(TX+4.5,ez,'pinch',lf)}}
+    const t=seg(v,.4,.66);return{cur:'R',L:T(TX-lerp(.5,5,t),5.6,'point'),R:T(TX+lerp(.5,5,t),5.6,'point')}}
+  case'diamond':{const sx=lerp(6,9,ease(v));return{cur:'R',L:T(TX-sx+.8,5.8,'edge'),R:T(TX+sx-.8,5.8,'edge')}}
+  case'closeB':{const L=T(TX-7,5.5,'point');
+    if(v<.3)return{cur:'R',L,R:G.bottleGrip?{x:G.bottleGrip[0],z:G.bottleGrip[1],pose:'grip',lift:1.5,w:1}:T(TX+4,8,'open',1.2)};
+    if(v>.95)return{cur:'R',L:T(TX-2,5.5,'flat'),R:T(TX+2,5.5,'flat')};
+    let tz,lf;if(v<.64){const f=ease(seg(v,.3,.62))*Math.PI;tz=3.8-2.3*Math.cos(f);lf=2.3*Math.sin(f)}else{const f=ease(seg(v,.66,1))*Math.PI;tz=7.2+2.3*Math.cos(f);lf=2.3*Math.sin(f)}
+    return{cur:'R',L,R:T(TX+.2,tz,'point',lf*.6)}}
+  case'gusset':{const a=there(v)*Math.PI*.95,lf=Math.sin(a)*1.5;
+    if(v>.38&&v<.72){const t=seg(v,.4,.68);return{cur:'R',L:T(1.3,lerp(-8.5,1,t),'point'),R:T(9.3,lerp(-8.5,1,t),'point')}}
+    if(a<.08)return{cur:'R',L:T(-.2,-3,'edge'),R:T(10.8,-3,'edge')};
+    return{cur:'R',L:T(1.3-2*Math.cos(a),-3,'pinch',lf),R:T(9.3+2*Math.cos(a),-3,'pinch',lf)}}
+  case'open':{if(v<.3)return{cur:'R',L:T(TX-2,-10,'pinch',seg(v,.05,.25)*2),R:T(TX+1.5,-1,'flat')};
+    const g=bagGeo(),F=(x,z,pose,ra)=>({x,z,pose,ra,lift:0,f:1}),UP=Math.PI/2,L=F(-6.6,-6,'flat',UP);
+    if(g.ob<=0)return{cur:'R',L,R:F(6.6+g.dx*.5,-6+g.dz*.5,'flat',-UP)};
+    return{cur:'R',L,R:G.punchGrip?F(G.punchGrip[0],G.punchGrip[1],'grip'):F(7,-17,'open')}}
+  case'handles':return G.hc||{cur:'R',L:{x:-6.6,z:-6,pose:'flat',ra:Math.PI/2,f:1},R:{x:6,z:-17,pose:'open',f:1}};
   }
-  return{cur:'R',L:E(-.95,.45,.1,'open'),R:E(1.15,.45,.1,'open')}}
+  return{cur:'R',L:{x:-11,z:3,pose:'open',lift:1,f:1},R:{x:11,z:3,pose:'open',lift:1,f:1}}}
+
 /* what the hands are doing right now, as short spoken captions; ranges are in raw step progress */
 const PHASE={
   center:[[0,.18,'Hold the right edge'],[.18,.49,'Lift it and fold it over to the left'],[.49,.57,'Line up the corners'],[.57,.77,'Press the fold with your finger'],[.77,1,'Open it out']],
@@ -1110,9 +1142,9 @@ const PHASE={
   diamond:[[0,.18,'Hold both corners'],[.18,1,'Pull the corners out']],
   closeB:[[0,.18,'Hold the bottom'],[.18,.43,'Put glue in the middle'],[.43,.7,'Fold the top flap down'],[.7,1,'Fold the bottom flap up']],
   gusset:[[0,.18,'Hold both sides'],[.18,.49,'Fold the sides in'],[.49,.77,'Press the creases'],[.77,1,'Open them out']],
-  open:[[0,.7,'Open the bag'],[.7,1,'Punch the holes']],
-  handles:[[0,1,'Thread the cord']]};
-function phaseOf(key){const L=PHASE[key];if(!L)return null;const r=V(key);let i=L.findIndex(p=>r>=p[0]&&r<p[1]);if(i<0)i=L.length-1;return{i,n:L.length,txt:L[i][2],a:L[i][0],b:L[i][1]}}
+  open:[[0,.3,'Open the top of the bag'],[.3,.5,'Stand the bag up'],[.5,.7,'Square the bottom'],[.7,.85,'Punch the left holes'],[.85,1,'Punch the right holes']],
+  handles:[[0,.088,'Push one end into the left hole'],[.088,.16,'Bring the end up out of the top'],[.16,.256,'Tie a knot in the end'],[.256,.32,'Pull the knot back inside'],[.32,.408,'Push the other end into the right hole'],[.408,.48,'Bring the end up out of the top'],[.48,.576,'Tie a knot in the end'],[.576,.64,'Pull the knot back inside'],[.64,.81,'Lift the handle up'],[.81,1,'Make the back handle the same way']]};
+function phaseOf(key){const L=PHASE[key];if(!L)return null;const r=V(key);let i=L.findIndex(p=>r>=p[0]&&r<p[1]);if(i<0)i=L.length-1;return{i,n:L.length,txt:L[i][2]}}
 let lastPhase='';
 function showPhase(key,working){const el2=$('phase');
   if(!working||!key){if(!el2.hidden){el2.hidden=true;lastPhase=''}return}
@@ -1120,80 +1152,128 @@ function showPhase(key,working){const el2=$('phase');
   const id=key+ph.i;if(id===lastPhase)return;lastPhase=id;
   $('phaseNum').textContent=ph.i+1;$('phaseTxt').textContent=ph.txt;el2.hidden=false;el2.classList.remove('pop');void el2.offsetWidth;el2.classList.add('pop');
   log('Guidance',`Hand action: ${ph.txt}`);say(ph.txt)}
-/* curved dashed arrow in sheet coordinates: where the paper will travel */
-function foldArrow(x0,z0,x1,z1,bend,a){if(a<=.02)return;const p=P(x0,z0),q=P(x1,z1),mx=(p[0]+q[0])/2,mz=(p[1]+q[1])/2,dx=q[0]-p[0],dz=q[1]-p[1],L=Math.hypot(dx,dz)||1;
-  const cx=mx-dz/L*bend*L,cz=mz+dx/L*bend*L,s=SC();ctx.save();ctx.globalAlpha=a;ctx.lineCap='round';
-  for(const [col,w] of [['rgba(14,44,74,.55)',7],['#5ff0df',4]]){ctx.strokeStyle=col;ctx.lineWidth=w/s;ctx.setLineDash([.06,.045]);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.quadraticCurveTo(cx,cz,q[0],q[1]);ctx.stroke()}
-  ctx.setLineDash([]);const an=Math.atan2(q[1]-cz,q[0]-cx),hs=.09;ctx.fillStyle='#5ff0df';ctx.strokeStyle='rgba(14,44,74,.6)';ctx.lineWidth=2/s;
-  ctx.beginPath();ctx.moveTo(q[0],q[1]);ctx.lineTo(q[0]-hs*Math.cos(an-.45),q[1]-hs*Math.sin(an-.45));ctx.lineTo(q[0]-hs*Math.cos(an+.45),q[1]-hs*Math.sin(an+.45));ctx.closePath();ctx.stroke();ctx.fill();ctx.restore()}
-/* glowing crease line while it is being pressed */
-function creaseGlow(x0,z0,x1,z1,a){if(a<=.02)return;const p=P(x0,z0),q=P(x1,z1),s=SC(),pul=.6+.4*Math.sin(performance.now()/180);ctx.save();ctx.globalAlpha=a*pul;ctx.lineCap='round';
-  ctx.strokeStyle='rgba(95,240,223,.35)';ctx.lineWidth=14/s;ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();
-  ctx.strokeStyle='#5ff0df';ctx.lineWidth=3/s;ctx.setLineDash([.05,.035]);ctx.stroke();ctx.restore()}
-function foldGuides(key,working){if(!working||!key)return;const r=V(key),pre=1-seg(r,GRIP+.05,GRIP+.25),inR=(a,b)=>r>=a&&r<b?Math.min(1,(r-a)*12,(b-r)*12):0;
-  switch(key){
-  case'center':foldArrow(.7,.55,-1.72,.55,-.22,pre);creaseGlow(-.53,-1,-.53,1,inR(.49,.77));break;
-  case'flapR':foldArrow(.72,.55,.47,.55,-.5,pre);creaseGlow(.6,-1,.6,1,inR(.63,1));break;
-  case'foldL':foldArrow(-1.75,.55,.55,.55,-.22,pre);creaseGlow(.6,-1,.6,1,inR(.67,1));break;
-  case'creaseB':foldArrow(0,.98,0,.14,.45,pre);creaseGlow(-.4,.55,.4,.55,inR(.49,.77));break;
-  case'diamond':foldArrow(-.3,.55,-.95,.55,.3,pre);foldArrow(.3,.55,.95,.55,-.3,pre);break;
-  case'gusset':foldArrow(-.58,-.2,-.25,-.2,.45,pre);foldArrow(.58,-.2,.25,-.2,-.45,pre);creaseGlow(-.4,-1,-.4,.55,inR(.49,.77));creaseGlow(.4,-1,.4,.55,inR(.49,.77));break;
-  case'closeB':{const v=VP(key);if(v>.28&&v<.5)foldArrow(0,.25,0,.52,.4,1);if(v>.62&&v<.8)foldArrow(0,.85,0,.58,.4,1);break}}}
-/* where a hand is touching or holding the paper */
-function contactMark(h,tint,active){if(!active||h.h>.09)return;const pose=h.c[1]<.8?(h.c[0]<.9?'pinch':'point'):'flat',s=SC(),pul=.5+.5*Math.sin(performance.now()/220);
-  ctx.save();ctx.strokeStyle=tint;ctx.lineWidth=3/s;ctx.globalAlpha=.55+.4*pul;ctx.beginPath();ctx.arc(h.x,h.z,((h.hold||0)>.5?.075:.055)+.02*pul,0,Math.PI*2);ctx.stroke();
-  if((h.hold||0)<.5){ctx.fillStyle=tint;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(h.x,h.z,.018,0,Math.PI*2);ctx.fill()}ctx.restore()}
-function gripOnBottle(){const [bx,bz,a]=G.bottle,d=-.4;return[bx-d*Math.sin(a),bz+d*Math.cos(a)]}
+
+function stepHand(h,t,rate,left,attach){
+  const sc=t.f?'front':'top',dt=HDT;
+  if(h.sc!==sc){h.sc=sc;h.x=t.x+(left?-6:6);h.z=t.z+26}
+  let k=1-Math.exp(-dt*rate*PACE.hand);const kp=1-Math.exp(-dt*Math.max(4,10*PACE.hand));
+  if(attach){const dist=Math.hypot(t.x-h.x,t.z-h.z),sp=30/PACE.k;k=dist<.6?1-Math.exp(-dt*60):Math.min(1,sp*dt/dist)}
+  h.x=lerp(h.x,t.x,k);h.z=lerp(h.z,t.z,k);h.lift=lerp(h.lift,t.lift||0,kp);
+  const sh=SHO[sc][left?0:1],want=t.ra!=null?t.ra:Math.atan2(h.x-sh[0],-(h.z-sh[1]));
+  let d=want-h.rot;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;h.rot+=d*Math.min(1,kp*1.4);
+  const P2=POSE[t.pose]||POSE.open;for(let i=0;i<h.p.length;i++)h.p[i]=lerp(h.p[i],P2[i],kp)}
 function updateHands(key,working){
   const raw=key?V(key):0,appr=PHASED.includes(key)&&working&&raw<GRIP;
   let c=chore(key);
   if(appr){/* reach: open hand above the grip point, then close the fingers on the paper */c=chore(key,0);const t=raw/GRIP;
-    ['L','R'].forEach(h=>{const q=c[h];if(t<.55){c[h]={...q,pose:q.pose==='point'?'point':'open',h:q.h+.14*(1-t/.55)}}})}
-  G.appr=appr;
-  const active=working||S.dragging||S.auto,toW=t=>{if(t.w)return t;const p=P(t.x,t.z);return{...t,x:p[0],z:p[1]}};
+    ['L','R'].forEach(h=>{const q=c[h];if(t<.55)c[h]={...q,pose:q.pose==='point'?'point':'open',lift:(q.lift||0)+2.5*(1-t/.55)}})}
+  const active=working||S.dragging||S.auto,toW=t=>{if(t.f||t.w)return{...t};const p=P(t.x,t.z);return{...t,x:p[0],z:p[1],lift:(t.lift||0)+CF.lift}};
   let L=toW(c.L),R=toW(c.R);
-  if(!active){/* idle: hover above the start of the move, fingers relaxed; the cursor hand follows the pointer */
-    const relax=t=>({...t,pose:t.pose==='pinch'||t.pose==='grip'||t.pose==='hold'||t.pose==='edge'?'open':t.pose,h:Math.max(t.h,.1)});
-    L=relax(L);R=relax(R);const cur=c.cur==='L'?'L':'R',ch=cur==='L'?L:R;
-    if(handVis){ch.x=handT.x;ch.z=handT.z;ch.pose=S.hover?'point':'open';ch.h=.16}}
-  stepHand(HL,L,active?12:(c.cur==='L'&&handVis?40/PACE.hand*.5:6),true);stepHand(HR,R,active?12:(c.cur==='R'&&handVis?40/PACE.hand*.5:6),false);
+  if(!active){const relax=t=>({...t,pose:['pinch','grip','hold','edge'].includes(t.pose)?'open':t.pose,lift:Math.max(t.lift||0,1.2)});
+    L=relax(L);R=relax(R);const ch=c.cur==='L'?L:R;
+    if(handVis){ch.x=handT.x;ch.z=handT.z;ch.f=handT.sc==='front'?1:0;ch.w=1;ch.pose=S.hover?'point':'open';ch.lift=1.4;ch.ra=null}}
+  const att=active&&!appr;
+  stepHand(HL,L,active?12:(c.cur==='L'&&handVis?40:6),true,att);stepHand(HR,R,active?12:(c.cur==='R'&&handVis?40:6),false,att);
   return c.cur}
 
-/* view tween */
-let camTw={t:1};
-const BX_A=[-1.42,-1.08,1.42,1.3],BX_B=[-.5,-1.08,1.56,1.32],BX_C=[-.15,-1.45,1.72,.95];
-const BOX={place:[-1.5,-1.15,2.0,1.85],center:BX_A,flapR:BX_A,glue:BX_A,foldL:BX_A,creaseB:BX_B,diamond:BX_B,closeB:BX_B,gusset:BX_B,open:BX_C,handles:BX_C,done:BX_C};
-function fitRegion(key){const b=BOX[key]||BOX.place,g=$('guide'),bw=b[2]-b[0],bh=b[3]-b[1],bot=H-80,rt=W-62;
-  const inSt=g&&stage.contains(g),gb=inSt?g.offsetTop+g.offsetHeight+8:14,gr=inSt?g.offsetLeft+g.offsetWidth+8:14;
-  /* option A: full width below the instruction card; option B: full height beside it */
-  const R=[[12,gb,rt,bot],[gr,14,rt,bot]].map(([l,t,r,d])=>({l,t,r,d,s:Math.min((r-l)/bw,(d-t)/bh)}));
-  const o=R[1].s>R[0].s*1.04?R[1]:R[0];return{b,o,z:Math.min(3.2,Math.max(.55,Math.max(30,o.s)/BASE)),mx:(o.l+o.r)/2,my:(o.t+o.d)/2}}
-function fitView(key){const f=fitRegion(key),sc=BASE*f.z;return[(f.b[0]+f.b[2])/2-(f.mx-W/2)/sc,(f.b[1]+f.b[3])/2-(f.my-H*OY)/sc,f.z]}
-/* close-up camera centred on a world point, inside the same free area */
-/* close-up that keeps both hands and the paper they move inside the free area */
-function handsView(key,pts){const f=fitRegion(key),pad=.42;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;pts.forEach(([x,z])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);z0=Math.min(z0,z);z1=Math.max(z1,z)});
-  x0-=pad;x1+=pad;z0-=pad*.8;z1+=pad*.9;const o=f.o,sc0=Math.min((o.r-o.l)/(x1-x0),(o.d-o.t)/(z1-z0)),z=Math.min(f.z*1.6,Math.max(f.z,sc0/BASE)),sc=BASE*z;
-  return[(x0+x1)/2-(f.mx-W/2)/sc,(z0+z1)/2-(f.my-H*OY)/sc,z]}
-function focusView(key,px,pz,mul){const f=fitRegion(key),z=Math.min(3.2,f.z*mul),sc=BASE*z;return[px-(f.mx-W/2)/sc,pz-(f.my-H*OY)/sc,z]}
+/* ---------- guides: fold arrows and crease glow (top view) ---------- */
+function foldArrow(x0,z0,x1,z1,b,a){if(a<=.02)return;const A=P(x0,z0),B=P(x1,z1),dx=B[0]-A[0],dz=B[1]-A[1],L=Math.hypot(dx,dz)||1;let n=[dz/L,-dx/L];if(n[1]>0)n=[-n[0],-n[1]];
+  const c=[(A[0]+B[0])/2+n[0]*b,(A[1]+B[1])/2+n[1]*b];
+  X.save();X.globalAlpha*=a;X.setLineDash([.8,.55]);X.lineWidth=.32;X.strokeStyle=C.guide;X.lineCap='round';X.beginPath();X.moveTo(A[0],A[1]);X.quadraticCurveTo(c[0],c[1],B[0],B[1]);X.stroke();X.setLineDash([]);
+  X.translate(B[0],B[1]);X.rotate(Math.atan2(B[1]-c[1],B[0]-c[0]));X.fillStyle=C.guide;X.beginPath();X.moveTo(.6,0);X.lineTo(-.9,-.75);X.lineTo(-.9,.75);X.closePath();X.fill();X.restore()}
+function creaseGlow(x0,z0,x1,z1,a,now){if(a<=.02)return;const A=P(x0,z0),B=P(x1,z1);X.save();X.globalAlpha*=a*(.45+.35*Math.sin(now/180));X.lineCap='round';X.lineWidth=.55;X.strokeStyle=C.guide;
+  X.beginPath();X.moveTo(A[0],A[1]);X.lineTo(B[0],B[1]);X.stroke();X.restore()}
+function foldGuides(key,working,now){if(!working||!key)return;const r=V(key),pre=1-seg(r,GRIP+.05,GRIP+.25),inR=(a,b)=>r>=a&&r<b?Math.min(1,(r-a)*12,(b-r)*12):0;
+  switch(key){
+  case'center':foldArrow(12,3.5,-12.5,3.5,6,pre);creaseGlow(0,-10,0,10,inR(.49,.77),now);break;
+  case'flapR':foldArrow(12.2,3.5,10,3.5,1.5,pre);creaseGlow(11.3,-10,11.3,10,inR(.63,1),now);break;
+  case'foldL':foldArrow(-12.2,3.5,10.8,3.5,6,pre);creaseGlow(11.3,-10,11.3,10,inR(.67,1),now);break;
+  case'creaseB':foldArrow(TX,9.8,TX,1.4,2.5,pre);creaseGlow(-.7,5.5,11.3,5.5,inR(.49,.77),now);break;
+  case'diamond':foldArrow(TX-3,5.5,TX-9.5,5.5,1,pre);foldArrow(TX+3,5.5,TX+9.5,5.5,1,pre);break;
+  case'gusset':foldArrow(-.2,-4,2.8,-4,1.5,pre);foldArrow(10.8,-4,7.8,-4,1.5,pre);creaseGlow(1.3,-10,1.3,1.5,inR(.49,.77),now);creaseGlow(9.3,-10,9.3,1.5,inR(.49,.77),now);break;
+  case'closeB':{const v=VP(key);if(v>.28&&v<.5)foldArrow(TX,1.6,TX,5.2,1.2,1);if(v>.62&&v<.8)foldArrow(TX,9.4,TX,5.8,1.2,1);break}}}
+
+/* ---------- the two views ---------- */
+function drawTop(now,working,pulse){
+  const cam=CAM.top,key=curKey();setCam(cam);setGrain(cam);
+  X.fillStyle='rgba(0,0,0,.16)';X.fillRect(-27.4,-17.2,56,36.4);
+  X.drawImage(woodC,-28,-18,56,36);
+  X.fillStyle='rgba(0,0,0,.18)';X.fillRect(-18.6,-12.1,38,25);
+  X.drawImage(matC,-19,-12.5,38,25);
+  if(S.step===0&&!S.done){X.save();X.setLineDash([.8,.5]);X.lineWidth=.22;X.strokeStyle=S.near?'#7dff9b':`rgba(95,240,223,${(.55+.45*pulse).toFixed(3)})`;X.strokeRect(-12.7,-10,25.4,20);X.restore()}
+  if(!G.bottle)standBottle(17.5,-13.5);
+  punchTop(-23.5,-13.5);
+  if(S.step<=IDX('handles')&&!S.done)coilTop(22,12.5);
+  if(S.step>IDX('foldL')||S.done)drawTube();else drawSheetA();
+  if(G.bottle)bottle(G.bottle.tip,G.bottle.ax);
+  foldGuides(key,working,now);
+  drawHands('top',working,now);
+}
+function drawFront(now,working){
+  const cam=CAM.front,key=curKey(),dk=isDark();setCam(cam);setGrain(cam);
+  const wg=X.createLinearGradient(0,-60,0,-3);wg.addColorStop(0,dk?'#13212e':'#e9eef2');wg.addColorStop(1,dk?'#1b2d3d':'#d3dde5');X.fillStyle=wg;X.fillRect(-120,-120,240,117);
+  X.drawImage(woodC,-70,-3,140,60);X.fillStyle='rgba(0,0,0,.14)';X.fillRect(-70,-3,140,.35);
+  X.drawImage(matC,-19,-2.4,38,4);
+  const g=bagGeo(),{stand,d,dx,dz}=g,cd=G.cord||{};
+  if(!G.punch)punchFront(-11,-.6);
+  if(!cd.front)coilFront(11.5,-.6);
+  if(stand>.001){
+    X.save();X.scale(1,lerp(.1,1,stand));
+    X.fillStyle='rgba(30,20,10,.22)';X.beginPath();X.ellipse(dx*.5,.3+dz*.2,5.2+d*.4,1.1,0,0,7);X.fill();
+    if(cd.back)cordLine(cd.back,true);
+    paper([[4,0],[4+dx,dz],[4+dx,-14+dz],[4,-14]],'bag',{back:true,sc:'front'});
+    line([[4+dx/2,-14+dz/2],[4+dx/2,dz/2]],.1,`rgba(${C.crease},.5)`);
+    pathPts([[-4,-14],[4,-14],[4+dx,-14+dz],[-4+dx,-14+dz]]);X.fillStyle=C.inside;X.fill();X.strokeStyle=C.edge;X.lineWidth=.08;X.stroke();
+    paper([[-4,-14],[4,-14],[4,0],[-4,0]],'bag',{sc:'front',color:C.front});
+    X.drawImage(printC,-3.2,-12,6.4,11.2);
+    const pd=g.after,ob=g.ob;
+    [[-2,pd||(key==='open'&&ob>.3)],[2,pd||(key==='open'&&ob>.8)]].forEach(([hx,on])=>{if(!on)return;X.fillStyle='#2a1e14';X.beginPath();X.arc(hx,HZ,.38,0,7);X.fill();X.strokeStyle='#c9ccd2';X.lineWidth=.16;X.stroke()});
+    X.restore()}
+  if(cd.front)cordLine(cd.front);
+  (cd.ups||[]).forEach(p=>cordLine(p));
+  (cd.knots||[]).forEach(k=>{X.fillStyle=C.cord;X.beginPath();X.arc(k.p[0],k.p[1],.55*k.s,0,7);X.fill();X.fillStyle='rgba(255,255,255,.2)';X.beginPath();X.arc(k.p[0]-.15,k.p[1]-.15,.2*k.s,0,7);X.fill()});
+  if(cd.loop){X.strokeStyle=C.cord;X.lineWidth=.3;X.beginPath();X.ellipse(cd.loop.p[0],cd.loop.p[1],cd.loop.r*Math.abs(Math.cos(now/260))+.05,cd.loop.r,0,0,7);X.stroke()}
+  if(G.punch)punchActive(G.punch);
+  drawHands('front',working,now);
+}
+function drawScene(now,working){
+  const key=curKey(),pulse=.5+.5*Math.sin(now/260);
+  hlParts=key?STEPS[S.step].parts:[];hlAmt=!key?0:(S.hover||working||S.dragging)?.9:pulse*.6;
+  HITS=[];badges=[];
+  X.setTransform(DPR,0,0,DPR,0,0);X.globalAlpha=1;X.fillStyle=isDark()?'#0f1d29':'#dde7ee';X.fillRect(0,0,W,H);
+  updateProps(key,working,now);G.cur=updateHands(key,working);
+  const vb=frontAmt();
+  if(vb<1){X.globalAlpha=1;drawTop(now,working,pulse)}
+  if(vb>0){X.globalAlpha=vb;drawFront(now,working)}
+  X.setTransform(1,0,0,1,0,0);
+  badges.forEach(b=>{if(b.x<-30||b.y<-30||b.x>W*DPR+30||b.y>H*DPR+30)return;X.globalAlpha=b.a;X.fillStyle='#fff';X.beginPath();X.arc(b.x,b.y,11*DPR,0,7);X.fill();
+    X.fillStyle=b.c;X.font=`700 ${13*DPR}px Lexend, sans-serif`;X.textAlign='center';X.textBaseline='middle';X.fillText(b.t,b.x,b.y+.5*DPR)});
+  X.globalAlpha=1}
+
+/* ---------- camera: framed per step; drag empty space to move, scroll to zoom ---------- */
+const BOXT={place:[-20,-14,22,22],A:[-15,-12,15,17],B:[-6,-12,17,17]};
+const BOXF={open:[-13,-22,17,8],handles:[-13,-24,17,6],done:[-12,-24,14,6]};
+function boxFor(key,sc){if(sc==='front')return BOXF[key]||BOXF.open;if(key==='place')return BOXT.place;if(['center','flapR','glue','foldL'].includes(key))return BOXT.A;return BOXT.B}
+function fitView(key,sc){const b=boxFor(key,sc),w=b[2]-b[0],h=b[3]-b[1];return{x:(b[0]+b[2])/2,z:(b[1]+b[3])/2,s:Math.min(W/w,H/h)}}
 let curFrame='place';
-function frame(key){curFrame=key;if(S)S.userCam=false;camTw={f:[view.cx,view.cz,view.z],to:fitView(key),t:0}}
-function snapFrame(){const v=fitView(curFrame);view.cx=v[0];view.cz=v[1];view.z=v[2];camTw.t=1}
+function frame(key){curFrame=key;if(S)S.userCam=false;camTw={f:{top:{...CAM.top},front:{...CAM.front}},to:{top:fitView(key,'top'),front:fitView(key,'front')},t:0}}
+function snapFrame(){CAM.top=fitView(curFrame,'top');CAM.front=fitView(curFrame,'front');camTw.t=1}
 function applyPace(){$('paceLbl').textContent=PACE.name;$('btnPace').title='Speed: '+PACE.name+' (click to change)'}
 applyPace();
 $('btnPace').onclick=()=>{PACE=PACES[(PACES.indexOf(PACE)+1)%PACES.length];try{localStorage.setItem('pbsim-pace',PACE.id)}catch(e){}applyPace();
   toast('Speed: '+PACE.name,true);log('System','Speed set to '+PACE.name)};
-let followOn=true;try{followOn=localStorage.getItem('pbsim-follow')!=='0'}catch(e){}
+let followOn=false;try{followOn=localStorage.getItem('pbsim-follow')==='1'}catch(e){}
 $('btnFollow').setAttribute('aria-pressed',followOn);
 $('btnFollow').onclick=()=>{followOn=!followOn;try{localStorage.setItem('pbsim-follow',followOn?'1':'0')}catch(e){}$('btnFollow').setAttribute('aria-pressed',followOn);
-  toast(followOn?'Close-up on: the camera zooms in and follows the hands while they work':'Close-up off: the whole sheet stays in view',true);if(!followOn&&curFrame)frame(curFrame)};
+  toast(followOn?'Close-up on: the view moves in on the hands while they work':'Close-up off: the whole work stays in view',true);if(!followOn&&curFrame)frame(curFrame)};
 $('btnFocus').onclick=()=>{const sm=$('simmain'),on=!sm.classList.contains('focus');sm.classList.toggle('focus',on);document.body.classList.toggle('stage-focus',on);
   $('btnFocus').setAttribute('aria-pressed',on);$('btnFocus').title=on?'Exit full screen (Esc)':'Full screen workbench';requestAnimationFrame(()=>{resize();snapFrame()})};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('simmain').classList.contains('focus'))$('btnFocus').click()});
 new ResizeObserver(()=>{if(S)snapFrame()}).observe($('guide'));
 $('btnCenter').onclick=()=>frame(S.done?'done':STEPS[S.step].key);
-function zoomBy(f,px,py){if(px==null){px=W/2;py=H*OY}if(S)S.userCam=true;const b=toWorld(px,py);view.z=Math.min(3.2,Math.max(.55,view.z*f));const a=toWorld(px,py);view.cx+=b[0]-a[0];view.cz+=b[1]-a[1];camTw.t=1;T.headset=performance.now()}
+function zoomBy(f){if(S)S.userCam=true;const c=CAM[activeSc()];c.s=Math.min(240,Math.max(3,c.s*f));camTw.t=1;T.headset=performance.now()}
 $('btnZoomIn').onclick=()=>zoomBy(1.2);$('btnZoomOut').onclick=()=>zoomBy(1/1.2);
-el.addEventListener('wheel',e=>{e.preventDefault();const r=el.getBoundingClientRect();zoomBy(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+el.addEventListener('wheel',e=>{e.preventDefault();zoomBy(Math.exp(-e.deltaY*.0015))},{passive:false});
 
 /* sound effects */
 let AC=null,soundOn=true,rustle=null,rustling=false;
@@ -1205,15 +1285,15 @@ function setRustle(on){if(!AC)return;if(!rustle){const len=AC.sampleRate,buf=AC.
   rustle.gain.setTargetAtTime(on&&soundOn?.04:0,AC.currentTime,.05)}
 $('btnSound').onclick=()=>{soundOn=!soundOn;$('btnSound').setAttribute('aria-pressed',soundOn);$('btnSound').title=soundOn?'Sound on':'Sound off';$('sndOff').hidden=soundOn;ac();if(!soundOn)setRustle(false)};
 
-/* ---------- interaction ---------- */
-const SNAP=.35;let downXY=null,lastPt=[0,0],pointerDownCam=false,panLast=null,handVis=false;const handT={x:.8,z:.4,h:.2},supT={x:-.8,z:.4};
+/* ---------- interaction (pointer → 2D world) ---------- */
+const SNAP=3.5;let downXY=null,lastPt=[0,0],pointerDownCam=false,panLast=null,handVis=false;const handT={x:8,z:4,sc:'top'};
 function curKey(){return S&&!S.done&&STEPS[S.step]?STEPS[S.step].key:null}
 function setPt(e){const r=el.getBoundingClientRect();lastPt=[e.clientX-r.left,e.clientY-r.top]}
-function inPoly(x,z,w){let c=false;for(let i=0,j=w.length-1;i<w.length;j=i++){const [xi,zi]=w[i],[xj,zj]=w[j];if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)c=!c}return c}
 function validFor(key,hit){return !!(hit&&key&&STEPS[S.step].parts.includes(hit.part))}
-function hitAt(){const [x,z]=toWorld(lastPt[0],lastPt[1]),key=curKey(),parts=key?STEPS[S.step].parts:[];let first=null;
-  for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(h.proxy&&!parts.includes(h.part))continue;if(!inPoly(x,z,h.w))continue;if(validFor(key,h))return h;if(!first&&!h.proxy)first=h}
-  return first}
+function hitAt(){const sc=activeSc(),[wx,wz]=toWorld(lastPt[0],lastPt[1],sc),key=curKey(),parts=key?STEPS[S.step].parts:[],list=HITS.filter(h=>h.sc===sc);
+  for(const h of list)if(parts.includes(h.part)&&inBox(h.pts,wx,wz,1.6))return{part:h.part,pt:[wx,wz]};
+  for(let i=list.length-1;i>=0;i--)if(inPoly(list[i].pts,wx,wz))return{part:list[i].part,pt:[wx,wz]};
+  return null}
 const nameOf={half:'the right half of the sheet',sheet:'the left part of the sheet',flapR:'the narrow glue flap',flapL:'the wide left panel',glue:'the glue strip',tube:'the middle of the bag',side:'a side edge',bottom:'the bottom strip',diamond:'the diamond',bag:'the bag'};
 function missMsg(key,hit){const st=STEPS[S.step];return `That is ${nameOf[hit.part]||'the wrong part'}. For “${st.title}”, use ${nameOf[st.parts[0]]}.`}
 function busy(){return S.done||S.auto||S.autoHold||S.standing}
@@ -1221,38 +1301,40 @@ function startHold(){S.holding=true}
 function stopHold(){S.holding=false}
 function autoDo(via){const key=curKey();if(!key||busy())return;S.via=via;ac();const st=STEPS[S.step];
   if(st.dur){S.autoHold=true;return}
-  if(key==='place'){S.auto=true;S.lift=.18;S.carry={x:0,z:0};S.yaw=0;sfx.pick();setTimeout(()=>{S.auto=false;S.lift=0;S.prog=1;completeStep()},800*PACE.k)}}
+  if(key==='place'){S.auto=true;S.lift=1.5;S.carry={x:0,z:0};S.yaw=0;sfx.pick();setTimeout(()=>{S.auto=false;S.lift=0;S.prog=1;completeStep()},800*PACE.k)}}
 function startPan(e){pointerDownCam=true;panLast=[e.clientX,e.clientY];camTw.t=1;try{el.setPointerCapture(e.pointerId)}catch(_){}}
+function trackPointer(){const sc=activeSc(),[wx,wz]=toWorld(lastPt[0],lastPt[1],sc);handT.x=wx;handT.z=wz;handT.sc=sc;return hitAt()}
+function anchorW(key){if(key==='handles')return{sc:'front',p:[0,-9]};
+  const a={place:[0,0],center:[8.5,2],flapR:[12,0],glue:[10.6,0],foldL:[-6.5,0],creaseB:[TX,7.7],diamond:[TX,6.5],closeB:[TX,5.5],gusset:[10.3,-3],open:[TX,-2]}[key]||[0,0];
+  return{sc:'top',p:P(a[0],a[1])}}
 let lastVrTap=0;
 function vrTap(e){
   lastVrTap=performance.now();ac();setPt(e);T.finger=lastVrTap;handVis=true;
-  const [wx,wz]=toWorld(lastPt[0],lastPt[1]);handT.x=wx;handT.z=wz;
-  if(S.done){openReview();return}
+  const hit=trackPointer();if(S.done){openReview();return}
   const key=curKey();if(!key||busy())return;
-  const hit=hitAt(),a=P(...anchorLocal(key)),near=Math.hypot(wx-a[0],wz-a[1])<.5;
+  const a=anchorW(key),w=toWorld(lastPt[0],lastPt[1],a.sc),near=a.sc===activeSc()&&Math.hypot(w[0]-a.p[0],w[1]-a.p[1])<5;
   if(validFor(key,hit)||near){autoDo('touch');return}
   const st=STEPS[S.step];toast(`For “${st.title}”, click ${nameOf[st.parts[0]]} at the glowing ring, or press the big button below.`,true);
 }
 el.addEventListener('click',e=>{if(vrMode&&performance.now()-lastVrTap>600)vrTap(e)});
 el.addEventListener('pointerdown',e=>{
   if(vrMode){vrTap(e);return}
-  if(e.button!==0&&e.pointerType==='mouse')return;
+  if(e.button!==0&&e.pointerType==='mouse'){startPan(e);return}
   ac();setPt(e);downXY=[e.clientX,e.clientY];T.finger=performance.now();pointerDownCam=false;
   const key=curKey();if(!key||busy()){startPan(e);return}
   const st=STEPS[S.step],hit=hitAt(),ok=validFor(key,hit);
-  if(key==='place'&&ok){S.dragging=true;S.lift=.18;sfx.pick();const [wx,wz]=toWorld(lastPt[0],lastPt[1]);S.dragOff={x:wx-S.carry.x,z:wz-S.carry.z};el.setPointerCapture(e.pointerId);return}
+  if(key==='place'&&ok){S.dragging=true;S.lift=1.5;sfx.pick();const [wx,wz]=toWorld(lastPt[0],lastPt[1],'top');S.dragOff={x:wx-S.carry.x,z:wz-S.carry.z};el.setPointerCapture(e.pointerId);return}
   if(st.dur&&ok){S.via='touch';startHold();S.ptrHold=true;el.setPointerCapture(e.pointerId);return}
   if(hit&&!ok){error(missMsg(key,hit));return}
   startPan(e);
 });
 el.addEventListener('pointermove',e=>{
   setPt(e);T.finger=performance.now();handVis=true;
-  if(pointerDownCam&&panLast&&e.buttons){if(S)S.userCam=true;const s=SC();view.cx-=(e.clientX-panLast[0])/s;view.cz-=(e.clientY-panLast[1])/s;panLast=[e.clientX,e.clientY];T.headset=performance.now()}
-  const key=curKey(),hit=hitAt();S.hover=validFor(key,hit);
-  const [wx,wz]=toWorld(lastPt[0],lastPt[1]);handT.x=wx;handT.z=wz;
-  if(S.dragging){const rx=Math.min(1.8,Math.max(-1.8,wx-S.dragOff.x)),rz=Math.min(1.4,Math.max(-1.2,wz-S.dragOff.z)),d=Math.hypot(rx,rz);
+  if(pointerDownCam&&panLast&&e.buttons){if(S)S.userCam=true;const c=CAM[activeSc()];c.x-=(e.clientX-panLast[0])/c.s;c.z-=(e.clientY-panLast[1])/c.s;panLast=[e.clientX,e.clientY];T.headset=performance.now()}
+  const key=curKey(),hit=trackPointer();S.hover=validFor(key,hit);
+  if(S.dragging){const [wx,wz]=toWorld(lastPt[0],lastPt[1],'top'),rx=Math.min(18,Math.max(-18,wx-S.dragOff.x)),rz=Math.min(14,Math.max(-12,wz-S.dragOff.z)),d=Math.hypot(rx,rz);
     const was=S.near;S.near=d<SNAP;if(S.near&&!was)tone(880,.08,'triangle',.06);
-    S.carry={x:S.near?rx*.25:rx,z:S.near?rz*.25:rz};S.yaw=S.near?0:.2*Math.min(1,d);S.prog=S.near?1:Math.max(0,1-d/1.4)}
+    S.carry={x:S.near?rx*.25:rx,z:S.near?rz*.25:rz};S.yaw=S.near?0:.2*Math.min(1,d/10);S.prog=S.near?1:Math.max(0,1-d/14)}
   el.style.cursor=S.dragging?'grabbing':pointerDownCam&&e.buttons?'move':S.hover?(key==='place'?'grab':'pointer'):'default';
 });
 el.addEventListener('pointerleave',()=>{if(!S.dragging&&!S.holding)handVis=false});
@@ -1260,12 +1342,13 @@ function endPointer(e){
   const moved=downXY?Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1]):99;
   if(S.dragging){S.dragging=false;
     if(S.near){S.carry={x:0,z:0};S.yaw=0;S.lift=0;S.prog=1;S.near=false;S.via='touch';completeStep()}
-    else{S.lift=0;const d=Math.hypot(S.carry.x,S.carry.z);error(`The sheet is ${(d*10).toFixed(1)} cm away from the guide. Drag it until the outline turns green.`)}}
+    else{S.lift=0;const d=Math.hypot(S.carry.x,S.carry.z);error(`The sheet is ${d.toFixed(1)} cm away from the guide. Drag it until the outline turns green.`)}}
   else if(S.ptrHold){S.ptrHold=false;stopHold()}
   else if(pointerDownCam&&moved<6&&curKey()&&!busy())toast(`Tip: ${STEPS[S.step].mark.toLowerCase()} at the glowing ring, use the button below, or say “${STEPS[S.step].title.toLowerCase()}”.`,true);
   pointerDownCam=false;panLast=null;downXY=null;
 }
 el.addEventListener('pointerup',endPointer);el.addEventListener('pointercancel',endPointer);
+el.addEventListener('contextmenu',e=>e.preventDefault());
 
 /* action button + keyboard */
 const actBtn=$('actBtn');
@@ -1286,137 +1369,34 @@ function refreshAct(){$('actLbl').textContent=S.done?'Review session':ACT();actB
 function ACT(){return vrText(STEPS[S.step].act)}
 
 /* ---------- loop ---------- */
-let lastT=performance.now();
-const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,clamp=t=>Math.min(1,Math.max(0,t)),lerp=(a,b,t)=>a+(b-a)*t,seg=(t,a,b)=>clamp((t-a)/(b-a));
-const there=t=>t<.38?ease(t/.38):t<.72?1:1-ease((t-.72)/.28); /* fold, hold flat while the crease is pressed, then unfold */
+let lastT=performance.now(),lastSec=-1;
 const chips={headset:$('chip-headset'),finger:$('chip-finger'),pressure:$('chip-pressure'),touch:$('chip-touch'),voice:$('chip-voice')};
 T.voice=0;
 function chip(k,on){const c=chips[k];if(c.classList.contains('active')!==on){c.classList.toggle('active',on);c.textContent=on?'Active':'Simulated'}}
 const marker=$('marker'),markLbl=$('markLbl'),pring=$('pring'),actFill=$('actFill');
-let lastSec=-1,lastPunch=0,glueAnim=0,HDT=1/60;const G={h2:.6,th2:0,bagTop:-.9};
-
-function drawScene(now,working){
-  const s=SC();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,el.width,el.height);
-  ctx.setTransform(DPR*s,0,0,DPR*s,DPR*(W/2-view.cx*s),DPR*(H*OY-view.cz*s));
-  hits=[];const key=curKey(),pulse=.5+.5*Math.sin(now/260);G.bottle=null;G.cordTip=null;G.punchPr=0;G.rollC=G.rollF=G.rollL=null;if(key!=='open'&&key!=='handles'&&!S.done)G.bag=null;
-  hlParts=key?STEPS[S.step].parts:[];hlAmt=!key?0:(S.hover||working||S.dragging)?.9:pulse*.6;
-  /* table + mat */
-  ctx.save();ctx.shadowColor='rgba(10,25,40,.35)';ctx.shadowBlur=24*DPR;ctx.shadowOffsetY=10*DPR;ctx.drawImage(woodC,-2.8,-1.8,5.6,3.6);ctx.restore();
-  ctx.save();ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=6*DPR;ctx.shadowOffsetY=2*DPR;ctx.drawImage(matC,-1.9,-1.25,3.8,2.5);ctx.restore();
-  /* guide outline */
-  if(S.step===0){const col=S.near?'#7dff9b':'#5ff0df',a=S.near?1:.55+.45*pulse;ctx.save();ctx.globalAlpha=a;ctx.strokeStyle=col;ctx.lineWidth=2/s;ctx.setLineDash([.08,.05]);ctx.strokeRect(-1.27,-1,2.54,2);ctx.setLineDash([]);
-    ctx.lineWidth=4/s;[[-1.27,-1,1,1],[1.27,-1,-1,1],[1.27,1,-1,-1],[-1.27,1,1,-1]].forEach(([x,z,sx,sz])=>{ctx.beginPath();ctx.moveTo(x+sx*.22,z);ctx.lineTo(x,z);ctx.lineTo(x,z+sz*.22);ctx.stroke()});ctx.restore()}
-  /* pose values */
-  const cf=there(VP('center')),th1=cf*Math.PI*.985,h1=-.53,c1=Math.cos(th1),s1=Math.sin(th1);
-  const h2=h1+1.13*c1,y2=1.13*s1,th2=th1+ease(seg(VP('flapR'),0,.55))*Math.PI;G.h2=h2;G.th2=th2;
-  const thL=-ease(seg(VP('foldL'),0,.6))*Math.PI,tubeOn=S.step>IDX('foldL');
-  const dT=ease(VP('diamond')),cb=VP('closeB'),gs=there(VP('gusset'));
-  const op=V('open'),oa=ease(seg(op,0,.68)),ob=seg(op,.7,1),hv=V('handles');
-  const bagOn=oa>=.03||S.step>IDX('open');
-  /* resting props */
-  const gk=key==='glue'&&working?1:key==='closeB'&&working&&cb<.3?2:0;
-  if(!gk)bottle(2.2,-1.42,.55,false);
-  const punching=ob>0&&ob<1;if(!punching)punchProp(-2.3,-1.2,-.2,0,false);
-  if(hv<.98)coil(2.2,1.25);
-  /* carry lift shadow */
-  if(!tubeOn&&CF.lift>.005){const w=[[-1.8,-1],[.74,-1],[.74,1],[-1.8,1]].map(p=>P(p[0],p[1]));ctx.save();ctx.translate(CF.lift*.6,CF.lift*.8);path(w);ctx.fillStyle=`rgba(10,30,25,${.12+CF.lift})`;ctx.filter='blur(6px)';ctx.fill();ctx.restore()}
-  if(!tubeOn){
-    /* phase A: flat sheet */
-    const fL=ease(seg(VP('foldL'),0,.6)),drawL=()=>{G.rollL=rollPanel(-.6,1.2,-1,fL,-1,1,'flapL')};
-    piece([[-.6,-1],[-.53,-1],[-.53,1],[-.6,1]],'sheet');
-    if(fL<=0)drawL();
-    line(-.53,-1,-.53,1,VP('center')*.55,2);
-    if(cf>.004){G.rollC=rollPanel(-.53,1.27,1,cf,-1,1,'half')}
-    else{piece([[-.53,-1],[.6,-1],[.6,1],[-.53,1]],'half');G.rollF=rollPanel(.6,.14,1,ease(seg(VP('flapR'),0,.55)),-1,1,'flapR',{shade:.06})}
-    xPanel(h2,y2,th2,-.3,.34,-1.05,1.05,'flapR',{proxy:1});
-    if(V('glue')>0)xPanel(h2,y2+.002,th2,.025,.115,-.96,-.96+1.92*V('glue'),'glue',{fill:`rgba(250,246,232,.92)`,noEdge:1,shade:-.01});
-    if(fL>0)drawL();
-  }else if(!bagOn){
-    /* phase B: flat tube */
-    piece([[-.4,-1],[.4,-1],[.4,.55],[-.4,.55]],'tube');line(.32,-1,.32,.55,.5,3);
-    xPanel(-.4,0,-gs*Math.PI*.95,-.2,0,-1,.55,'side');xPanel(-.4,0,-gs*Math.PI*.95,-.4,.05,-1,.55,'side',{proxy:1});
-    xPanel(.4,0,gs*Math.PI*.95,0,.2,-1,.55,'side');xPanel(.4,0,gs*Math.PI*.95,-.05,.4,-1,.55,'side',{proxy:1});
-    line(-.4,-1,-.4,.55,VP('gusset')*.55,2);line(.4,-1,.4,.55,VP('gusset')*.55,2);
-    if(dT<.98){zPanel(.55,0,-there(VP('creaseB'))*Math.PI*.96,0,.45*(1-dT),-.6,.6,'bottom');zPanel(.55,0,0,-.05,.7,-.75,.75,'bottom',{proxy:1})}
-    line(-.6,.55,.6,.55,VP('creaseB')*.6,2);
-    if(dT>0){const sx=lerp(.6,1,dT),D=(x,z)=>[x*sx,.55+z*dT];
-      piece([[-.6,0],[-.45,-.15],[.45,-.15],[.6,0],[.45,.15],[-.45,.15]].map(p=>D(p[0],p[1])),'diamond',{shade:.1});
-      piece([[-.8,-.45],[.8,-.45],[.8,.45],[-.8,.45]].map(p=>D(p[0],p[1])),'diamond',{proxy:1});
-      const ga=seg(cb,0,.3)*.9*(1-.8*seg(cb,.62,1));if(ga>0)piece([[-.3,-.11],[.3,-.11],[.3,.11],[-.3,.11]].map(p=>D(p[0],p[1])),'diamond',{fill:`rgba(250,246,232,${ga})`,noEdge:1,noHl:1});
-      const flap=(hz,phi,sign)=>{const c=Math.cos(phi),sn=Math.sin(phi),pts=[[-.45,0],[-.3,sign*.15],[.3,sign*.15],[.45,0]].map(([x,d])=>{const hh=Math.abs(d)*sn,k=1+hh*.14;return D(x*k,hz+d*c)});
-        piece(pts,'diamond',{h:.15*sn,shade:.04+(c<0?.13:0)+(1-Math.abs(c))*.12})};
-      flap(-.15,ease(seg(cb,.3,.62))*Math.PI,-1);flap(.15,ease(seg(cb,.66,1))*Math.PI,1)}
-  }else{
-    /* phase C: the bag standing up, front view with oblique depth */
-    const fw=lerp(1.2,.8,oa),fh=lerp(1.55,1.4,oa),zb=lerp(.55,.5,oa),zt=zb-fh,dx=.24*oa,dz=-.2*oa,x0=-fw/2,x1=fw/2;G.bagTop=zt;G.bag={x0,x1,zt,zb,dx,dz};
-    const bump=Math.sin(Math.PI*oa)*.35,pr=0;
-    piece([[x0+dx,zt+dz],[x1+dx,zt+dz],[x1+dx,zb+dz],[x0+dx,zb+dz]],'bag',{h:bump,shade:.16});
-    piece([[x0,zt],[x1,zt],[x1+dx,zt+dz],[x0+dx,zt+dz]],'bag',{fill:'#4a3018',noHl:1});
-    const hole=(x,z,light)=>{const p=P(x,z);ctx.beginPath();ctx.arc(p[0],p[1],.04,0,Math.PI*2);ctx.fillStyle=light?'#e9c99a':'#2a1e14';ctx.fill();ctx.lineWidth=1.5/s;ctx.strokeStyle='#2a1e14';ctx.stroke()};
-    const cordPts=(ox,oz)=>crPts([[-.2,zt+.13],[-.24,zt-.08],[-.12,zt-.3],[.12,zt-.3],[.24,zt-.08],[.2,zt+.13]].map(([x,z])=>[x+ox,z+oz]),12);
-    const drawCord=(i,ox,oz)=>{const t=clamp(hv*2-i);if(t<=0)return;const pts=cordPts(ox,oz),n=Math.max(2,Math.round(pts.length*t));
-      ctx.save();ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=4*DPR;ctx.shadowOffsetY=3*DPR;ctx.beginPath();pts.slice(0,n).forEach((p,k)=>{const q=P(p[0],p[1]);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])});if(t<1){const lp=pts[n-1];G.cordTip=P(lp[0],lp[1])}
-      ctx.lineWidth=.034;ctx.lineCap='round';ctx.strokeStyle='#1d1a17';ctx.stroke();ctx.restore();
-      [[-.2,0],[.2,pts.length-1]].forEach(([x,idx],j)=>{if(t>=1||(j===0&&t>.02)){const q=P(x+ox,zt+.13+oz);ctx.beginPath();ctx.arc(q[0],q[1],.036,0,Math.PI*2);ctx.fillStyle='#1d1a17';ctx.fill()}})};
-    if(ob>.8){hole(-.2+dx,zt+dz+.13,true);hole(.2+dx,zt+dz+.13,true)}
-    drawCord(1,dx,dz);
-    const side=piece([[x1,zt],[x1+dx,zt+dz],[x1+dx,zb+dz],[x1,zb]],'bag',{shade:.24,noHl:1});
-    if(dx>.02){line(x1+dx/2,zt+dz/2,x1+dx/2,zb-fh*.12+dz/2,.35,1.5);line(x1+dx/2,zb-fh*.12+dz/2,x1,zb,.35,1.5);line(x1+dx/2,zb-fh*.12+dz/2,x1+dx,zb+dz,.35,1.5)}
-    const fr=piece([[x0,zt],[x1,zt],[x1,zb],[x0,zb]],'bag',{h:bump*.6,noHl:1});
-    if(oa>.2){const tl=P(x0,zt),br=P(x1,zb);ctx.save();ctx.globalAlpha=seg(oa,.2,1);ctx.drawImage(printC,tl[0],tl[1],br[0]-tl[0],br[1]-tl[1]);ctx.restore();
-      if(hlAmt>0&&hlParts.includes('bag')){path(fr);ctx.fillStyle=`rgba(95,240,223,${hlAmt*.12})`;ctx.fill();ctx.lineWidth=2/s;ctx.strokeStyle=`rgba(95,240,223,${.35+hlAmt*.6})`;ctx.stroke()}}
-    if(ob>.35){hole(-.2,zt+.13);hole(.2,zt+.13)}
-    drawCord(0,0,0);
-    piece([[x0-.2,zt-.45],[x1+.35,zt-.45],[x1+.35,zb+.1],[x0-.2,zb+.1]],'bag',{proxy:1});
-    if(punching){const pp=P(.2,zt+.13),pr2=Math.abs(Math.sin(ob*Math.PI*4));G.punchPr=pr2;punchProp(pp[0],pp[1],-.15,pr2,true);
-      if(now-lastPunch>350&&pr2>.95){sfx.punch();lastPunch=now}}
-  }
-  /* active glue bottle */
-  if(gk){glueAnim+=1/60;const p=gk===1?P(h2+.07*Math.cos(th2),-.96+1.92*V('glue')):P(0,.55);G.bottle=[p[0],p[1],gk===1?.7:.5]}
-  /* ghost hand */
-  foldGuides(key,working);
-  /* two virtual hands (drawn last so they sit on top of the paper) */
-  {const cur=updateHands(key,working);G.cur=cur;const active=working||S.dragging||S.auto,aL=1,aR=1;
-    const hb=()=>{if(G.bottle)bottle(G.bottle[0],G.bottle[1],G.bottle[2],true)};
-    if(cur==='R'){drawHand(HL,true,aL,'#c96f1c');drawHand(HR,false,aR,'#2a74b8');hb()}else{drawHand(HR,false,aR,'#2a74b8');hb();drawHand(HL,true,aL,'#c96f1c')}
-    contactMark(HL,'#e0a25a',working);contactMark(HR,'#3b9ee0',working)}
-}
-
-function anchorLocal(key){switch(key){
-  case'place':return[-.53,0];case'center':return[.32,.2];case'flapR':return[.67,0];case'glue':return[G.h2+.07*Math.cos(G.th2),0];
-  case'foldL':return[-1.2,0];case'creaseB':return[0,.77];case'diamond':return[0,.65];case'closeB':return[0,.55];case'gusset':return[.5,-.3];
-  case'open':return[0,-.25];case'handles':return[0,G.bagTop-.12]}return[0,0]}
-
 function tick(){
-  const now=performance.now(),dt=Math.min((now-lastT)/1000,.1);lastT=now;let key=curKey();
+  const now=performance.now(),dt=Math.min((now-lastT)/1000,.1);lastT=now;HDT=dt;let key=curKey();
   if(key){const st=STEPS[S.step];
-    if((S.holding||S.autoHold)&&st.dur){S.prog=Math.min(1,S.prog+dt/(st.dur*PACE.k*(PHASED.includes(key)?1.25:1)));S.vals[key]=S.prog;
+    if((S.holding||S.autoHold)&&st.dur&&!window.__freeze){S.prog=Math.min(1,S.prog+dt/(st.dur*PACE.k*(PHASED.includes(key)?1.25:1)));S.vals[key]=S.prog;
       if(S.prog>=1){S.holding=false;S.ptrHold=false;S.btnHold=false;S.autoHold=false;completeStep()}}
     const b=$('sb'+S.step);if(b)b.style.width=S.prog*100+'%'}
   key=curKey();
-  const working=!!(S.holding||S.autoHold);
-  const holdP=key&&STEPS[S.step].dur?S.prog:0;
+  const working=!!(S.holding||S.autoHold),holdP=key&&STEPS[S.step].dur?S.prog:0;
   $('gHoldBar').style.width=holdP*100+'%';actFill.style.width=(working?holdP*100:0)+'%';
   if(AC&&rustling!==working){rustling=working;setRustle(working)}
-  /* carry (drag) */
   const k=1-Math.exp(-dt*14);CF.x=lerp(CF.x,S.carry.x,k);CF.z=lerp(CF.z,S.carry.z,k);CF.lift=lerp(CF.lift,S.lift,k);CF.yaw=lerp(CF.yaw,S.yaw,1-Math.exp(-dt*6));
-  /* view tween */
-  if(camTw.t<1){camTw.t=Math.min(1,camTw.t+dt/(1.1*Math.sqrt(PACE.k)));const e=ease(camTw.t);view.cx=lerp(camTw.f[0],camTw.to[0],e);view.cz=lerp(camTw.f[1],camTw.to[1],e);view.z=lerp(camTw.f[2],camTw.to[2],e)}
-  HDT=dt;
-  /* close-up: while a step is being performed, zoom in and track the working hand(s) */
-  {const follow=followOn&&!S.userCam&&camTw.t>=1&&working&&key&&!['place','center','flapR','glue','foldL'].includes(key);
-    if(follow){const pts=[[HL.x,HL.z],[HR.x,HR.z]],RG={creaseB:[[-.45,.05],[.45,1]],diamond:[[-.95,.25],[.95,.85]],closeB:[[-.8,.25],[.8,.85]],gusset:[[-.65,-.95],[.65,.6]]}[key];
-      if(RG)RG.forEach(q=>pts.push(P(q[0],q[1])));
-      const t=handsView(key,pts),kc=1-Math.exp(-dt*2.2*PACE.hand);
-      view.cx=lerp(view.cx,t[0],kc);view.cz=lerp(view.cz,t[1],kc);view.z=lerp(view.z,t[2],1-Math.exp(-dt*1.8*PACE.hand));G.following=true}
+  if(camTw.t<1){camTw.t=Math.min(1,camTw.t+dt/(1.1*Math.sqrt(PACE.k)));const e=ease(camTw.t);
+    ['top','front'].forEach(s=>{const f=camTw.f[s],to=camTw.to[s];CAM[s].x=lerp(f.x,to.x,e);CAM[s].z=lerp(f.z,to.z,e);CAM[s].s=lerp(f.s,to.s,e)})}
+  {const sc=activeSc(),follow=followOn&&!S.userCam&&camTw.t>=1&&working&&key&&key!=='place';
+    if(follow){const hs=[HL,HR].filter(h=>h.sc===sc);if(hs.length){const mx=hs.reduce((a,h)=>a+h.x,0)/hs.length,mz=hs.reduce((a,h)=>a+h.z,0)/hs.length,fv=fitView(key,sc),kc=1-Math.exp(-dt*1.8*PACE.hand),c=CAM[sc];
+      c.x=lerp(c.x,mx,kc);c.z=lerp(c.z,mz,kc);c.s=lerp(c.s,fv.s*1.6,kc);G.following=true}}
     else if(G.following){G.following=false;if(!S.userCam&&camTw.t>=1&&curFrame)frame(S.done?'done':curFrame)}}
   drawScene(now,working);showPhase(key,working);
-  /* marker */
-  if(key&&!working&&!S.dragging&&!S.auto){const a=P(...anchorLocal(key)),[mx,my]=toScreen(a[0],a[1]);
-    if(mx>-20&&mx<W+20&&my>-20&&my<H+20){marker.hidden=false;marker.style.left=mx+'px';marker.style.top=my+'px';markLbl.textContent=vrText(STEPS[S.step].mark)}else marker.hidden=true}
+  if(key&&!working&&!S.dragging&&!S.auto){const a=anchorW(key);
+    if(a.sc===activeSc()){const [mx,my]=toScreen(a.p[0],a.p[1],a.sc);if(mx>-20&&mx<W+20&&my>-20&&my<H+20){marker.hidden=false;marker.style.left=mx+'px';marker.style.top=my+'px';markLbl.textContent=vrText(STEPS[S.step].mark)}else marker.hidden=true}
+    else marker.hidden=true}
   else marker.hidden=true;
   if(S.holding&&S.ptrHold){pring.hidden=false;pring.style.left=lastPt[0]+'px';pring.style.top=lastPt[1]+'px';pring.style.setProperty('--p',holdP)}else pring.hidden=true;
-  /* chips + clock */
   chip('headset',now-T.headset<500);chip('finger',now-T.finger<350);chip('pressure',working);chip('touch',now-T.touch<700);chip('voice',listening||now-T.voice<1500);
   const sec=Math.floor(((S.done?S.end:now)-S.start)/1000);if(sec!==lastSec){lastSec=sec;$('elapsed').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
   requestAnimationFrame(tick);
@@ -1426,10 +1406,12 @@ function reset(reason){
   S=freshState();$('logBody').innerHTML='';$('errCount').textContent='0';$('gHoldBar').style.width='0%';
   CF.x=S.carry.x;CF.z=S.carry.z;CF.yaw=S.yaw;CF.lift=0;
   if(reason)log('System',reason);
-  log('System',`Session started (simulation mode) · ${learner}`);guidance();refreshSteps();frame('place');
+  log('System',`Session started (simulation mode, 2D view) · ${learner}`);guidance();refreshSteps();frame('place');
   reply('Waiting for a step name.');$('heardTxt').textContent='Nothing yet';
 }
-applyMode();renderStatic();renderAttempts();reset();resize();tick();
+
+applyMode();renderStatic();renderAttempts();resize();reset();snapFrame();tick();
+window.__S=()=>S;window.__dbg=()=>({G,HR,HL,CAM});window.__STEPS=STEPS;window.__frame=frame;
 if(vrMode)log('System','One-click VR mode on (controller input)');
 })();
 </script>
